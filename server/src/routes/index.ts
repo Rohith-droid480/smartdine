@@ -8,6 +8,9 @@ import { Router } from 'express';
 import { apiRateLimiter } from '../middleware/rateLimiter.middleware';
 import healthRouter from './v1/health.route';
 import authRouter from './v1/auth.route';
+import menuRouter from './v1/menu.route';
+import reservationRouter from './v1/reservation.route';
+import orderRouter from './v1/order.route';
 
 const router = Router();
 
@@ -19,13 +22,13 @@ router.use(apiRateLimiter);
 // ---------------------------------------------------------------------------
 router.use('/v1/health', healthRouter);
 router.use('/v1/auth', authRouter);
+router.use('/v1/menu', menuRouter);
+router.use('/v1/reservations', reservationRouter);
+router.use('/v1/orders', orderRouter);
 
 // ---------------------------------------------------------------------------
 // Future routes (uncomment as they are built in subsequent hours)
 // ---------------------------------------------------------------------------
-// router.use('/v1/menu', menuRouter);
-// router.use('/v1/reservations', reservationRouter);
-// router.use('/v1/orders', orderRouter);
 // router.use('/v1/inventory', inventoryRouter);
 // router.use('/v1/staff', staffRouter);
 // router.use('/v1/notifications', notificationRouter);

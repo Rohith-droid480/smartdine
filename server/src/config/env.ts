@@ -5,6 +5,7 @@
 // using undefined values deep in the application.
 // =============================================================================
 
+import 'dotenv/config';
 import { z } from 'zod';
 
 const envSchema = z.object({
