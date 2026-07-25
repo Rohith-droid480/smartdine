@@ -159,9 +159,29 @@ export async function logout(refreshToken: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Google OAuth (skeleton — wire up passport-google-oauth20 in H6)
+// Google OAuth callback
 // ---------------------------------------------------------------------------
 
-export async function handleGoogleCallback(_googleId: string, _email: string, _name: string): Promise<AuthResponse> {
-  throw AppError.internal('Google OAuth not yet implemented');
+export async function handleGoogleCallback(googleUser: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  createdAt: Date;
+}): Promise<AuthResponse> {
+  const tokens = generateTokenPair({
+    sub: googleUser.id,
+    email: googleUser.email,
+    role: googleUser.role,
+  });
+
+  await userRepo.saveRefreshToken(
+    googleUser.id,
+    tokens.refreshToken,
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  );
+
+  logger.info('User logged in via Google OAuth', { userId: googleUser.id });
+  return { user: toSharedUser(googleUser), tokens };
 }
+

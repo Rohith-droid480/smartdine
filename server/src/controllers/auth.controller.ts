@@ -8,7 +8,9 @@ import type { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess, sendCreated } from '../utils/response';
+import { AppError } from '../utils/AppError';
 import { HTTP_STATUS } from '@smartdine/shared/constants';
+import { env } from '../config/env';
 
 export const signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const result = await authService.signup(req.body);
@@ -39,7 +41,31 @@ export const logout = asyncHandler(async (req: Request, res: Response): Promise<
   sendSuccess(res, null, HTTP_STATUS.OK, 'Logged out successfully');
 });
 
-export const googleCallback = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
-  // TODO (H6): Implement Google OAuth callback
-  sendSuccess(res, null, HTTP_STATUS.OK, 'Google OAuth not yet implemented');
+export const googleCallback = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  // Passport attaches the authenticated user to req.user via the strategy's done() callback.
+  // However, passport's user is the Prisma User model, not our JwtPayload.
+  // We access it through req.user (which passport populates).
+  const googleUser = req.user as unknown as {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    createdAt: Date;
+  };
+
+  if (!googleUser) {
+    throw AppError.unauthorized('Google authentication failed');
+  }
+
+  const authResponse = await authService.handleGoogleCallback(googleUser);
+
+  // Redirect to frontend with tokens as query params
+  // The frontend will extract these and store them
+  const redirectUrl = new URL('/auth/callback', env.CUSTOMER_WEB_URL);
+  redirectUrl.searchParams.set('accessToken', authResponse.tokens.accessToken);
+  redirectUrl.searchParams.set('refreshToken', authResponse.tokens.refreshToken);
+  redirectUrl.searchParams.set('expiresIn', String(authResponse.tokens.expiresIn));
+
+  res.redirect(redirectUrl.toString());
 });
+

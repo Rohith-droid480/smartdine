@@ -49,6 +49,10 @@ export async function deleteUser(id: string): Promise<User> {
   return prisma.user.delete({ where: { id } });
 }
 
+export async function linkGoogleId(id: string, googleId: string): Promise<User> {
+  return prisma.user.update({ where: { id }, data: { googleId } });
+}
+
 // ---------------------------------------------------------------------------
 // OTP management
 // ---------------------------------------------------------------------------

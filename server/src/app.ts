@@ -13,15 +13,20 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
 
 import { corsOptions } from './config/cors';
 import { morganStream } from './config/logger';
 import { env } from './config/env';
+import { configurePassport } from './config/passport';
 import { globalErrorHandler, notFoundHandler } from './middleware/error.middleware';
 import apiRouter from './routes/index';
 
 export function createApp(): express.Application {
   const app = express();
+
+  // Initialize Google OAuth strategy (no-op if credentials not configured)
+  configurePassport();
 
   // -----------------------------------------------------------------------
   // Trust proxy — required when running behind Vercel/Railway/Render reverse proxy
@@ -55,6 +60,11 @@ export function createApp(): express.Application {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
   app.use(cookieParser());
+
+  // -----------------------------------------------------------------------
+  // Passport (stateless — no sessions, JWT only)
+  // -----------------------------------------------------------------------
+  app.use(passport.initialize());
 
   // -----------------------------------------------------------------------
   // Compression
