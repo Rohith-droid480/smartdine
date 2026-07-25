@@ -11,6 +11,10 @@ import authRouter from './v1/auth.route';
 import menuRouter from './v1/menu.route';
 import reservationRouter from './v1/reservation.route';
 import orderRouter from './v1/order.route';
+import inventoryRouter from './v1/inventory.route';
+import staffRouter from './v1/staff.route';
+import notificationRouter from './v1/notification.route';
+import billingRouter from './v1/billing.route';
 
 const router = Router();
 
@@ -25,14 +29,9 @@ router.use('/v1/auth', authRouter);
 router.use('/v1/menu', menuRouter);
 router.use('/v1/reservations', reservationRouter);
 router.use('/v1/orders', orderRouter);
-
-// ---------------------------------------------------------------------------
-// Future routes (uncomment as they are built in subsequent hours)
-// ---------------------------------------------------------------------------
-// router.use('/v1/inventory', inventoryRouter);
-// router.use('/v1/staff', staffRouter);
-// router.use('/v1/notifications', notificationRouter);
-// router.use('/v1/ai', aiRouter);
-// router.use('/v1/analytics', analyticsRouter);
+router.use('/v1/inventory', inventoryRouter);
+router.use('/v1/staff', staffRouter);
+router.use('/v1/notifications', notificationRouter);
+router.use('/v1/billing', billingRouter);
 
 export default router;
