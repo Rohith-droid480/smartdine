@@ -90,15 +90,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         setOrderSuccessId(res.data.id);
         clearCart();
       } else {
-        // Fallback local order creation if backend endpoint needs guest bypass
-        const mockOrderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-        setOrderSuccessId(mockOrderId);
-        clearCart();
+        setErrorMsg(res.error ?? 'Failed to place order. Please try again.');
       }
-    } catch {
-      const mockOrderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-      setOrderSuccessId(mockOrderId);
-      clearCart();
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message ?? 'An unexpected network error occurred.');
     } finally {
       setIsSubmitting(false);
     }
