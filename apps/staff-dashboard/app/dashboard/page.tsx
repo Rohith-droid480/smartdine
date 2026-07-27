@@ -62,23 +62,29 @@ export default function DashboardPage() {
         getStaff(),
       ]);
 
+      // Safely unwrap arrays
+      const safeOrders = Array.isArray(orders) ? orders : (orders as any)?.data || [];
+      const safeReservations = Array.isArray(reservations) ? reservations : (reservations as any)?.data || [];
+      const safeInventory = Array.isArray(inventory) ? inventory : (inventory as any)?.data || [];
+      const safeStaff = Array.isArray(staff) ? staff : (staff as any)?.data || [];
+
       // Calculate active orders (placed, preparing, ready, PENDING, PREPARING, READY)
-      const activeOrdersCount = orders.filter((o: Order) =>
+      const activeOrdersCount = safeOrders.filter((o: Order) =>
         ['placed', 'preparing', 'ready', 'PENDING', 'PREPARING', 'READY'].includes(o.status)
       ).length;
 
       // Calculate reserved/seated tables
-      const reservedTablesCount = reservations.filter((r: Reservation) =>
+      const reservedTablesCount = safeReservations.filter((r: Reservation) =>
         ['CONFIRMED', 'SEATED', 'confirmed', 'seated'].includes(r.status)
       ).length;
 
       // Calculate low stock / out of stock items
-      const lowStockCount = inventory.filter((i: InventoryItem) =>
+      const lowStockCount = safeInventory.filter((i: InventoryItem) =>
         ['LOW_STOCK', 'OUT_OF_STOCK', 'low_stock', 'out_of_stock'].includes(i.status)
       ).length;
 
       // Calculate staff on duty / break
-      const staffOnShiftCount = staff.filter((s: StaffMember) =>
+      const staffOnShiftCount = safeStaff.filter((s: StaffMember) =>
         ['ON_DUTY', 'ON_BREAK', 'on_duty', 'on_break'].includes(s.shiftStatus)
       ).length;
 

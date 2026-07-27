@@ -146,7 +146,8 @@ export async function updateMenuItemAvailability(id: string, isAvailable: boolea
  */
 export async function getOrders(): Promise<Order[]> {
   try {
-    return await request<Order[]>('/api/v1/orders');
+    const res = await request<any>('/api/v1/orders');
+    return Array.isArray(res) ? res : res?.data || MOCK_ORDERS;
   } catch {
     await delay();
     return [...MOCK_ORDERS];
@@ -158,10 +159,11 @@ export async function getOrders(): Promise<Order[]> {
  */
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {
   try {
-    return await request<Order>(`/api/v1/orders/${id}/status`, {
+    const res = await request<any>(`/api/v1/orders/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     });
+    return res?.data || res || { ...MOCK_ORDERS[0], status };
   } catch {
     await delay();
     const order = MOCK_ORDERS.find((o) => o.id === id);
@@ -179,7 +181,8 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
  */
 export async function getReservations(): Promise<Reservation[]> {
   try {
-    return await request<Reservation[]>('/api/v1/reservations');
+    const res = await request<any>('/api/v1/reservations');
+    return Array.isArray(res) ? res : res?.data || MOCK_RESERVATIONS;
   } catch {
     await delay();
     return [...MOCK_RESERVATIONS];
@@ -191,10 +194,11 @@ export async function getReservations(): Promise<Reservation[]> {
  */
 export async function updateReservation(id: string, updates: Partial<Reservation>): Promise<Reservation> {
   try {
-    return await request<Reservation>(`/api/v1/reservations/${id}`, {
+    const res = await request<any>(`/api/v1/reservations/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
+    return res?.data || res;
   } catch {
     await delay();
     const reservation = MOCK_RESERVATIONS.find((r) => r.id === id);
@@ -211,7 +215,8 @@ export async function updateReservation(id: string, updates: Partial<Reservation
  */
 export async function getInventory(): Promise<InventoryItem[]> {
   try {
-    return await request<InventoryItem[]>('/api/v1/inventory');
+    const res = await request<any>('/api/v1/inventory');
+    return Array.isArray(res) ? res : res?.data || MOCK_INVENTORY;
   } catch {
     await delay();
     return [...MOCK_INVENTORY];
@@ -223,10 +228,11 @@ export async function getInventory(): Promise<InventoryItem[]> {
  */
 export async function updateInventoryItem(id: string, updates: Partial<InventoryItem>): Promise<InventoryItem> {
   try {
-    return await request<InventoryItem>(`/api/v1/inventory/${id}`, {
+    const res = await request<any>(`/api/v1/inventory/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
+    return res?.data || res;
   } catch {
     await delay();
     const item = MOCK_INVENTORY.find((i) => i.id === id);
@@ -243,7 +249,8 @@ export async function updateInventoryItem(id: string, updates: Partial<Inventory
  */
 export async function getStaff(): Promise<StaffMember[]> {
   try {
-    return await request<StaffMember[]>('/api/v1/staff');
+    const res = await request<any>('/api/v1/staff');
+    return Array.isArray(res) ? res : res?.data || MOCK_STAFF;
   } catch {
     await delay();
     return [...MOCK_STAFF];
