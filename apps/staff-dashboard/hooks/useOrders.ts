@@ -16,27 +16,28 @@ export function useOrders() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Fetch orders from lib/api.ts
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Silent background fetch for real-time live synchronization
+  const fetchOrders = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       const data = await getOrders();
       const sorted = sortOrdersByDate(data, 'desc');
       setOrders(sorted);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Failed to fetch orders list.');
-      }
+      setError(null);
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(true);
+
+    // High-frequency 3-second live sync polling interval
+    const interval = setInterval(() => {
+      fetchOrders(false);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [fetchOrders]);
 
   // Update order status with Optimistic UI update
@@ -128,7 +129,7 @@ export function useOrders() {
     setStatusFilter,
     selectedOrder,
     setSelectedOrder,
-    refreshOrders: fetchOrders,
+    refreshOrders: () => fetchOrders(true),
     updateStatus: handleUpdateStatus,
   };
 }

@@ -29,18 +29,18 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fetchOrderDetails = useCallback(async () => {
+  const fetchOrderDetails = useCallback(async (isInitial = false) => {
     if (!token || !orderId) {
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
       return;
     }
-    setIsLoading(true);
-    setErrorMsg(null);
+    if (isInitial) setIsLoading(true);
     try {
       const res = await api.orders.getById(token, orderId);
       if (res.success && res.data) {
         setOrder(res.data);
-      } else {
+        setErrorMsg(null);
+      } else if (isInitial) {
         setErrorMsg(res.error ?? 'Failed to load order details.');
       }
 
@@ -50,14 +50,22 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         setReceipt(receiptRes.data);
       }
     } catch (err: unknown) {
-      setErrorMsg((err as Error).message ?? 'Network error loading order tracking.');
+      if (isInitial) {
+        setErrorMsg((err as Error).message ?? 'Network error loading order tracking.');
+      }
     } finally {
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
     }
   }, [token, orderId]);
 
   useEffect(() => {
-    fetchOrderDetails();
+    fetchOrderDetails(true);
+
+    const interval = setInterval(() => {
+      fetchOrderDetails(false);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [fetchOrderDetails]);
 
   if (!token) {
@@ -112,7 +120,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </Link>
 
           <button
-            onClick={fetchOrderDetails}
+            onClick={() => fetchOrderDetails(true)}
             className="inline-flex items-center gap-2 rounded-2xl border border-stone-700 bg-stone-800 px-4 py-2 text-xs font-bold text-stone-200 hover:bg-stone-750 hover:text-white transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
