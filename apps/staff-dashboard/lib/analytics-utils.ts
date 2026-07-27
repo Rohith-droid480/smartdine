@@ -12,16 +12,16 @@ export interface PeakHourData {
 }
 
 export function formatAnalyticsCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
 }
 
 export function formatAnalyticsNumber(val: number): string {
-  return new Intl.NumberFormat('en-US').format(val);
+  return new Intl.NumberFormat('en-IN').format(val);
 }
 
 export function deriveTopItemsFromOrders(orders: Order[], limit = 5): TopItemData[] {
@@ -52,11 +52,11 @@ export function derivePeakHoursFromOrders(orders: Order[]): PeakHourData[] {
     '13:00': 32,
     '14:00': 24,
     '17:00': 15,
-    '18:00': 42,
-    '19:00': 68,
-    '20:00': 74,
-    '21:00': 50,
-    '22:00': 22,
+    '18:00': 12,
+    '19:00': 28,
+    '20:00': 34,
+    '21:00': 20,
+    '22:00': 12,
   };
 
   orders.forEach((order) => {
