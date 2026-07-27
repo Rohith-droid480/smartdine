@@ -25,30 +25,80 @@ export function useOrders() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const prevOrderCountRef = useRef<number>(0);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+  const isInitializedRef = useRef<boolean>(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
+  // Initialize Web Audio API on first user gesture
+  useEffect(() => {
+    const handleFirstGesture = () => {
+      try {
+        if (!audioCtxRef.current) {
+          const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          if (AudioCtx) {
+            audioCtxRef.current = new AudioCtx();
+          }
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+          audioCtxRef.current.resume();
+        }
+      } catch {
+        // Autoplay policy catch
+      }
+    };
+
+    window.addEventListener('click', handleFirstGesture, { once: false });
+    window.addEventListener('keydown', handleFirstGesture, { once: false });
+    return () => {
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+  }, []);
+
+  // Distinct multi-frequency restaurant order pop sound chime
   const playNotificationChime = useCallback(() => {
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      let ctx = audioCtxRef.current;
+      if (!ctx) {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (!AudioCtx) return;
+        ctx = new AudioCtx();
+        audioCtxRef.current = ctx;
+      }
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.3);
+      const now = ctx.currentTime;
+      
+      // Tone 1: High crisp pop (880Hz -> 1200Hz)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, now);
+      osc1.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+      gain1.gain.setValueAtTime(0.4, now);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.25);
 
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      // Tone 2: Harmonious resonance pop (1760Hz)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(1760, now + 0.1);
+      osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.35);
+      gain2.gain.setValueAtTime(0.3, now + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.1);
+      osc2.stop(now + 0.45);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.5);
     } catch {
-      // Audio autoplay restrictions catch
+      // Catch silent audio errors
     }
   }, []);
 
@@ -59,22 +109,30 @@ export function useOrders() {
       const data = await getOrders();
       const sorted = sortOrdersByDate(data, 'desc');
 
-      // Check if a new customer order landed in real-time
-      if (!isInitial && prevOrderCountRef.current > 0 && sorted.length > prevOrderCountRef.current) {
-        const newest = sorted[0];
-        if (newest) {
-          playNotificationChime();
-          setLatestAlert({
-            id: newest.id,
-            tableNumber: newest.tableNumber || 4,
-            total: newest.totalAmount || (newest as any).total || 0,
-            customerName: newest.customerName || 'Dining Customer',
-            itemCount: newest.items?.length || 1,
-          });
+      // Detect any newly created order ID
+      if (isInitializedRef.current) {
+        for (const o of sorted) {
+          if (!knownOrderIdsRef.current.has(o.id)) {
+            // Found a brand new order created live by customer!
+            playNotificationChime();
+            setLatestAlert({
+              id: o.id,
+              tableNumber: o.tableNumber || 4,
+              total: o.totalAmount || (o as any).total || 0,
+              customerName: o.customerName || 'Dining Customer',
+              itemCount: o.items?.length || 1,
+            });
+            break;
+          }
         }
       }
 
-      prevOrderCountRef.current = sorted.length;
+      // Update known order IDs set
+      const newIdSet = new Set<string>();
+      sorted.forEach((o) => newIdSet.add(o.id));
+      knownOrderIdsRef.current = newIdSet;
+      isInitializedRef.current = true;
+
       setOrders(sorted);
       setError(null);
     } catch (err: unknown) {
