@@ -63,7 +63,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
     const interval = setInterval(() => {
       fetchOrderDetails(false);
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [fetchOrderDetails]);

@@ -8,6 +8,18 @@ export const ALLOWED_ORDER_STATUSES: OrderStatus[] = [
   'billed',
 ];
 
+export function formatOrderNumber(id: string): string {
+  if (!id) return '#101';
+  if (id.startsWith('#')) return id;
+  const digitsOnly = id.replace(/[^0-9]/g, '');
+  if (digitsOnly.length >= 3) {
+    return `#${digitsOnly.slice(-3)}`;
+  }
+  const hash = Math.abs(id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+  const num = (hash % 900) + 101;
+  return `#${num}`;
+}
+
 export function normalizeOrderStatus(status: OrderStatus): 'placed' | 'preparing' | 'ready' | 'served' | 'billed' {
   const lower = String(status).toLowerCase();
   switch (lower) {

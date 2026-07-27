@@ -173,10 +173,10 @@ export function useOrders() {
   useEffect(() => {
     fetchOrders(true);
 
-    // High-frequency 3-second live sync polling interval
+    // High-speed 1-second live sync polling interval
     const interval = setInterval(() => {
       fetchOrders(false);
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [fetchOrders]);
