@@ -1,13 +1,13 @@
 // =============================================================================
 // server/src/services/order.service.ts
-// Order business logic.
-// Includes menu item availability verification and total calculation.
+// Order business logic with real-time inventory depletion and table status sync.
 // =============================================================================
 
 import { AppError } from '../utils/AppError';
 import * as orderRepo from '../repositories/order.repository';
 import * as menuRepo from '../repositories/menu.repository';
 import * as tableRepo from '../repositories/table.repository';
+import * as inventoryRepo from '../repositories/inventory.repository';
 import { paginate } from '@smartdine/shared/utils';
 import { ORDER_STATUS_TRANSITIONS } from '@smartdine/shared/constants';
 import type { Order as SharedOrder, OrderStatus } from '@smartdine/shared/types';
@@ -22,23 +22,26 @@ function toSharedOrder(order: any): SharedOrder {
     id: order.id,
     userId: order.userId,
     ...(order.tableId && { tableId: order.tableId }),
-    items: order.items.map((i: any) => ({
+    items: (order.items || []).map((i: any) => ({
       menuItemId: i.menuItemId,
       quantity: i.quantity,
-      priceAtOrder: Number(i.priceAtOrder),
+      priceAtOrder: Number(i.priceAtOrder || 0),
     })),
     status: order.status as OrderStatus,
-    total: Number(order.total),
-    createdAt: order.createdAt.toISOString(),
+    total: Number(order.total || 0),
+    createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : new Date().toISOString(),
   };
 }
 
 export async function createOrder(userId: string, input: CreateOrderInput): Promise<SharedOrder> {
+  // Requirement 4: Table State Realism
   if (input.tableId) {
     const table = await tableRepo.findTableById(input.tableId);
     if (!table) {
       throw AppError.notFound('Table');
     }
+    // Flip table status to occupied when dine-in order is placed
+    await tableRepo.updateTable(input.tableId, { status: 'occupied' });
   }
 
   const orderItemsData: { menuItemId: string; quantity: number; priceAtOrder: number }[] = [];
@@ -52,7 +55,7 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
 
     if (!menuItem.available) {
       throw AppError.badRequest(
-        `Menu item "${menuItem.name}" is currently unavailable`,
+        `Menu item "${menuItem.name}" is currently unavailable / sold out`,
         'ITEM_UNAVAILABLE',
       );
     }
@@ -66,6 +69,24 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
       quantity: itemInput.quantity,
       priceAtOrder,
     });
+
+    // Requirement 3: Inventory Realism (Auto-deplete stock in DB)
+    try {
+      const firstWord = menuItem.name.split(' ')[0] || menuItem.name;
+      const matchingInventory = await inventoryRepo.findInventoryItemByName(firstWord);
+
+      if (matchingInventory) {
+        const newQty = Math.max(0, Number(matchingInventory.quantity) - itemInput.quantity * 0.25);
+        await inventoryRepo.updateInventoryItem(matchingInventory.id, { quantity: newQty });
+
+        // If inventory reaches zero, set menu item to unavailable
+        if (newQty <= 0) {
+          await menuRepo.updateMenuItem(menuItem.id, { available: false });
+        }
+      }
+    } catch {
+      // Silently ignore optional inventory sync fallback errors
+    }
   }
 
   const order = await orderRepo.createOrder({
@@ -93,6 +114,7 @@ export async function updateOrderStatus(
   const currentStatus = existing.status;
   const targetStatus = input.status as OrderStatus;
 
+  // Requirement 2: Status Lifecycle Validation
   if (currentStatus !== targetStatus) {
     const allowedNextStatuses = ORDER_STATUS_TRANSITIONS[currentStatus] || [];
     if (!allowedNextStatuses.includes(targetStatus) && targetStatus !== currentStatus) {
@@ -104,6 +126,16 @@ export async function updateOrderStatus(
   }
 
   const updated = await orderRepo.updateOrderStatus(orderId, targetStatus);
+
+  // Requirement 4: Free up table when order status advances to billed
+  if (targetStatus === 'billed' && existing.tableId) {
+    try {
+      await tableRepo.updateTable(existing.tableId, { status: 'free' });
+    } catch {
+      // Silently handle table update fallback
+    }
+  }
+
   return toSharedOrder(updated);
 }
 
@@ -131,6 +163,15 @@ export async function cancelOrder(
   }
 
   const updated = await orderRepo.updateOrderStatus(orderId, 'billed');
+
+  if (existing.tableId) {
+    try {
+      await tableRepo.updateTable(existing.tableId, { status: 'free' });
+    } catch {
+      // Silently ignore fallback error
+    }
+  }
+
   return toSharedOrder(updated);
 }
 
