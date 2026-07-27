@@ -1,0 +1,94 @@
+import { OrderStatus, Order } from './types';
+
+export const ALLOWED_ORDER_STATUSES: OrderStatus[] = [
+  'placed',
+  'preparing',
+  'ready',
+  'served',
+  'billed',
+];
+
+export function normalizeOrderStatus(status: OrderStatus): 'placed' | 'preparing' | 'ready' | 'served' | 'billed' {
+  const lower = String(status).toLowerCase();
+  switch (lower) {
+    case 'pending':
+    case 'placed':
+      return 'placed';
+    case 'preparing':
+      return 'preparing';
+    case 'ready':
+      return 'ready';
+    case 'served':
+      return 'served';
+    case 'cancelled':
+    case 'completed':
+    case 'billed':
+      return 'billed';
+    default:
+      return 'placed';
+  }
+}
+
+export function getOrderStatusBadgeClass(status: OrderStatus): string {
+  const normalized = normalizeOrderStatus(status);
+  switch (normalized) {
+    case 'placed':
+      return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    case 'preparing':
+      return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    case 'ready':
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+    case 'served':
+      return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    case 'billed':
+      return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+    default:
+      return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+  }
+}
+
+export function getOrderStatusLabel(status: OrderStatus): string {
+  const normalized = normalizeOrderStatus(status);
+  switch (normalized) {
+    case 'placed':
+      return 'Placed';
+    case 'preparing':
+      return 'Preparing';
+    case 'ready':
+      return 'Ready';
+    case 'served':
+      return 'Served';
+    case 'billed':
+      return 'Billed';
+    default:
+      return 'Placed';
+  }
+}
+
+export function sortOrdersByDate(orders: Order[], direction: 'asc' | 'desc' = 'desc'): Order[] {
+  return [...orders].sort((a, b) => {
+    const timeA = new Date(a.createdAt).getTime();
+    const timeB = new Date(b.createdAt).getTime();
+    return direction === 'desc' ? timeB - timeA : timeA - timeB;
+  });
+}
+
+export function formatOrderCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatOrderTime(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return dateString;
+  }
+}

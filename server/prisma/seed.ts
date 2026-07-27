@@ -1,6 +1,7 @@
 // =============================================================================
 // server/prisma/seed.ts
 // Initial database seed for SmartDine system.
+// Run: npm run db:seed (from server/)
 // =============================================================================
 
 import { PrismaClient } from '@prisma/client';
@@ -26,7 +27,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const staff = await prisma.user.upsert({
+  const staffUser = await prisma.user.upsert({
     where: { email: 'staff@smartdine.com' },
     update: {},
     create: {
@@ -38,7 +39,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const customer = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'customer@smartdine.com' },
     update: {},
     create: {
@@ -50,9 +51,26 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log('  Users seeded: admin, staff, customer');
+  console.log('  ✔ Users seeded: admin, staff, customer');
 
-  // 2. Seed Tables
+  // 2. Seed Staff Profiles
+  const adminStaff = await prisma.staff.findUnique({ where: { userId: admin.id } });
+  if (!adminStaff) {
+    await prisma.staff.create({
+      data: { userId: admin.id, role: 'manager', shift: 'morning' },
+    });
+    console.log('  ✔ Staff profile created for admin');
+  }
+
+  const alexStaff = await prisma.staff.findUnique({ where: { userId: staffUser.id } });
+  if (!alexStaff) {
+    await prisma.staff.create({
+      data: { userId: staffUser.id, role: 'waiter', shift: 'evening' },
+    });
+    console.log('  ✔ Staff profile created for staff');
+  }
+
+  // 3. Seed Tables
   const tableData = [
     { number: 1, capacity: 2, status: 'free' as const },
     { number: 2, capacity: 2, status: 'free' as const },
@@ -68,10 +86,9 @@ async function main(): Promise<void> {
       create: t,
     });
   }
+  console.log('  ✔ Tables seeded: 5 tables');
 
-  console.log('  Tables seeded: 5 tables');
-
-  // 3. Seed Menu Items
+  // 4. Seed Menu Items
   const menuItems = [
     {
       name: 'Truffle Mushroom Risotto',
@@ -129,9 +146,40 @@ async function main(): Promise<void> {
       await prisma.menuItem.create({ data: item });
     }
   }
+  console.log('  ✔ Menu items seeded: 6 dishes across 4 categories');
 
-  console.log('  Menu items seeded: 6 items');
-  console.log('✅ Seed completed successfully!');
+  // 5. Seed Inventory Items
+  const inventoryItems = [
+    { name: 'Arborio Rice',           quantity: 8.0,  unit: 'kg',   reorderThreshold: 5.0  },
+    { name: 'Wild Mushrooms',         quantity: 3.5,  unit: 'kg',   reorderThreshold: 2.0  },
+    { name: 'Parmesan Cheese',        quantity: 4.0,  unit: 'kg',   reorderThreshold: 3.0  }, // low stock
+    { name: 'Atlantic Salmon',        quantity: 12.0, unit: 'kg',   reorderThreshold: 4.0  },
+    { name: 'Asparagus',              quantity: 6.0,  unit: 'kg',   reorderThreshold: 3.0  },
+    { name: 'Sourdough Bread',        quantity: 20.0, unit: 'units',reorderThreshold: 10.0 },
+    { name: 'Cherry Tomatoes',        quantity: 5.0,  unit: 'kg',   reorderThreshold: 3.0  },
+    { name: 'Romaine Lettuce',        quantity: 2.0,  unit: 'kg',   reorderThreshold: 2.5  }, // low stock
+    { name: 'Valrhona Dark Chocolate',quantity: 4.0,  unit: 'kg',   reorderThreshold: 2.0  },
+    { name: 'Vanilla Bean Gelato',    quantity: 8.0,  unit: 'L',    reorderThreshold: 3.0  },
+    { name: 'Fresh Mint',             quantity: 1.5,  unit: 'kg',   reorderThreshold: 0.5  },
+    { name: 'Mixed Berries',          quantity: 3.0,  unit: 'kg',   reorderThreshold: 1.5  },
+    { name: 'Extra Virgin Olive Oil', quantity: 6.0,  unit: 'L',    reorderThreshold: 2.0  },
+    { name: 'White Truffle Oil',      quantity: 0.8,  unit: 'L',    reorderThreshold: 1.0  }, // low stock
+    { name: 'Heavy Cream',            quantity: 5.0,  unit: 'L',    reorderThreshold: 2.0  },
+  ];
+
+  for (const inv of inventoryItems) {
+    const existing = await prisma.inventoryItem.findFirst({ where: { name: inv.name } });
+    if (!existing) {
+      await prisma.inventoryItem.create({ data: inv });
+    }
+  }
+  console.log('  ✔ Inventory seeded: 15 items (3 intentionally below reorder threshold)');
+
+  console.log('\n✅ Seed completed successfully!');
+  console.log('\n📋 Seed Credentials:');
+  console.log('   Admin:    admin@smartdine.com    / Password123');
+  console.log('   Staff:    staff@smartdine.com    / Password123');
+  console.log('   Customer: customer@smartdine.com / Password123');
 }
 
 main()

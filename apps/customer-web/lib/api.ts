@@ -13,10 +13,13 @@ import type {
   AuthResponse,
   User,
   MenuItem,
+  Table,
   Reservation,
   Order,
   Notification,
   AssistantResponse,
+  RecommendationResponse,
+  AssistantResponseData,
   SignupPayload,
   LoginPayload,
   VerifyOtpPayload,
@@ -53,12 +56,17 @@ async function fetcher<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const reqInit: RequestInit = {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
     cache: 'no-store',
-  });
+  };
+
+  if (body !== undefined) {
+    reqInit.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(`${API_BASE}${endpoint}`, reqInit);
 
   return res.json() as Promise<ApiResponse<T>>;
 }
@@ -100,8 +108,14 @@ export const reservationsApi = {
   getOwn: (token: string) =>
     fetcher<Reservation[]>('/reservations', { token }),
 
+  getTables: (token: string) =>
+    fetcher<Table[]>('/reservations/tables', { token }),
+
   create: (token: string, data: { tableId: string; time: string; partySize: number }) =>
     fetcher<Reservation>('/reservations', { method: 'POST', body: data, token }),
+
+  cancel: (token: string, id: string) =>
+    fetcher<Reservation>(`/reservations/${id}/cancel`, { method: 'POST', token }),
 };
 
 // ---------------------------------------------------------------------------
@@ -112,10 +126,22 @@ export const ordersApi = {
   getOwn: (token: string) =>
     fetcher<Order[]>('/orders', { token }),
 
+  getById: (token: string, id: string) =>
+    fetcher<Order>(`/orders/${id}`, { token }),
+
   create: (
     token: string,
     data: { tableId?: string; items: { menuItemId: string; quantity: number }[] },
   ) => fetcher<Order>('/orders', { method: 'POST', body: data, token }),
+};
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+export const billingApi = {
+  getReceipt: (token: string, orderId: string) =>
+    fetcher<Record<string, unknown>>(`/billing/receipt/${orderId}`, { token }),
 };
 
 // ---------------------------------------------------------------------------
@@ -128,6 +154,9 @@ export const notificationsApi = {
 
   markRead: (token: string, id: string) =>
     fetcher<null>(`/notifications/${id}/read`, { method: 'PATCH', token }),
+
+  markAllRead: (token: string) =>
+    fetcher<null>('/notifications/read-all', { method: 'PATCH', token }),
 };
 
 // ---------------------------------------------------------------------------
@@ -135,11 +164,11 @@ export const notificationsApi = {
 // ---------------------------------------------------------------------------
 
 export const aiApi = {
-  getRecommendations: (token: string) =>
-    fetcher<MenuItem[]>('/ai/recommendations', { token }),
+  getRecommendations: (token?: string) =>
+    fetcher<RecommendationResponse & MenuItem[]>('/ai/recommendations', { ...(token && { token }) }),
 
-  sendMessage: (token: string, message: string) =>
-    fetcher<AssistantResponse>('/ai/assistant', { method: 'POST', body: { message }, token }),
+  sendMessage: (message: string, token?: string) =>
+    fetcher<AssistantResponse & AssistantResponseData>('/ai/assistant', { method: 'POST', body: { message }, ...(token && { token }) }),
 };
 
 // ---------------------------------------------------------------------------
@@ -159,6 +188,7 @@ export const api = {
   menu: menuApi,
   reservations: reservationsApi,
   orders: ordersApi,
+  billing: billingApi,
   notifications: notificationsApi,
   ai: aiApi,
   health: healthApi,

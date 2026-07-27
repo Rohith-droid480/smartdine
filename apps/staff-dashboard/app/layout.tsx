@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/providers';
 import './globals.css';
 
 const inter = Inter({
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     default: 'SmartDine Staff Dashboard',
     template: '%s | SmartDine Dashboard',
   },
-  description: 'Staff operations dashboard — orders, tables, inventory, analytics, and AI insights.',
+  description: 'AI-Powered Smart Restaurant Management System Staff Dashboard',
   robots: { index: false, follow: false }, // Staff dashboard must not be indexed
 };
 
@@ -21,9 +22,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-gray-950 text-gray-100 antialiased">
-        {children}
+    <html lang="en" className={`${inter.variable} dark`}>
+      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

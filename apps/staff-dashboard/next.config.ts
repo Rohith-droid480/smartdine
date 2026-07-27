@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@smartdine/shared'],
+  reactStrictMode: true,
+  transpilePackages: ['@smartdine/shared', 'recharts'],
   images: {
     remotePatterns: [
       {

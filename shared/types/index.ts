@@ -186,6 +186,61 @@ export interface InsightsResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Verified AI Payload Interfaces (Matching Frozen Backend API)
+// ---------------------------------------------------------------------------
+
+export interface RecommendationItem {
+  menuItemId: string;
+  name: string;
+  price: number;
+  reason: string;
+  confidence: number;
+  available: boolean;
+}
+
+export interface RecommendationResponse {
+  mealPeriod: 'Breakfast' | 'Lunch' | 'Evening' | 'Dinner';
+  recommendations: RecommendationItem[];
+}
+
+export interface OperationalInsight {
+  id: string;
+  title: string;
+  description: string;
+  category: 'INVENTORY' | 'STAFFING' | 'MENU_OPTIMIZATION' | 'REVENUE';
+  impact: 'HIGH' | 'MEDIUM' | 'LOW';
+  actionableRecommendation: string;
+  createdAt: ISODateString;
+}
+
+export interface DemandForecastResponse {
+  forecastDate: ISODateString;
+  expectedCustomers: number;
+  expectedOrders: number;
+  expectedRevenue: number;
+  peakPeriod: string;
+  inventoryPressure: 'LOW' | 'MEDIUM' | 'HIGH';
+  confidence: number;
+  recommendations: string[];
+}
+
+export interface SupportedAssistantData {
+  supported: true;
+  intent: string;
+  answer: string;
+  confidence: number;
+  sources: string[];
+}
+
+export interface RefusalAssistantData {
+  supported: false;
+  message: string;
+  supportedTopics: string[];
+}
+
+export type AssistantResponseData = SupportedAssistantData | RefusalAssistantData;
+
+// ---------------------------------------------------------------------------
 // Analytics payloads
 // ---------------------------------------------------------------------------
 

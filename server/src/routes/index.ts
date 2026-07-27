@@ -15,6 +15,7 @@ import inventoryRouter from './v1/inventory.route';
 import staffRouter from './v1/staff.route';
 import notificationRouter from './v1/notification.route';
 import billingRouter from './v1/billing.route';
+import aiRouter from './v1/ai.route';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/v1/inventory', inventoryRouter);
 router.use('/v1/staff', staffRouter);
 router.use('/v1/notifications', notificationRouter);
 router.use('/v1/billing', billingRouter);
+router.use('/v1/ai', aiRouter);
 
 export default router;
