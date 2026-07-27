@@ -88,7 +88,7 @@ async function main(): Promise<void> {
   }
   console.log('  ✔ Tables seeded: 5 tables');
 
-  // 4. Seed Menu Items
+  // 4. Seed Expanded Michelin Menu Items
   const menuItems = [
     {
       name: 'Truffle Mushroom Risotto',
@@ -107,6 +107,30 @@ async function main(): Promise<void> {
       imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288',
     },
     {
+      name: 'Wagyu Beef Tenderloin',
+      description: 'Grade A5 Japanese Wagyu served with truffle jus, potato puree, and smoked shallots.',
+      price: 850.00,
+      category: 'Mains',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947',
+    },
+    {
+      name: 'Pan-Seared Chilean Sea Bass',
+      description: 'Wild sea bass served over saffron risotto, braised leeks, and champagne emulsion.',
+      price: 680.00,
+      category: 'Mains',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb',
+    },
+    {
+      name: 'Saffron Seafood Paella',
+      description: 'Spanish Bomba rice infused with saffron, jumbo prawns, calamari, and black mussels.',
+      price: 720.00,
+      category: 'Mains',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a',
+    },
+    {
       name: 'Artisanal Garlic Bruschetta',
       description: 'Toasted sourdough topped with vine-ripened tomatoes, fresh basil, and extra virgin olive oil.',
       price: 320.00,
@@ -123,12 +147,28 @@ async function main(): Promise<void> {
       imageUrl: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9',
     },
     {
+      name: 'Charred Asparagus & Burrata',
+      description: 'Fresh Italian burrata cheese, charred asparagus, heirloom tomatoes, and balsamic reduction.',
+      price: 410.00,
+      category: 'Starters',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81',
+    },
+    {
       name: 'Valrhona Chocolate Fondant',
       description: 'Warm chocolate cake with a molten center, served with vanilla bean gelato.',
       price: 420.00,
       category: 'Desserts',
       available: true,
       imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c',
+    },
+    {
+      name: 'Matcha Green Tea Tiramisu',
+      description: 'Uji matcha infused ladyfingers layered with mascarpone cream and dusted with green tea powder.',
+      price: 390.00,
+      category: 'Desserts',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9',
     },
     {
       name: 'Signature Berry Mocktail',
@@ -138,6 +178,14 @@ async function main(): Promise<void> {
       available: true,
       imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd',
     },
+    {
+      name: 'Smoked Old Fashioned Cocktail',
+      description: 'Bourbon whiskey infused with aromatic bitters, orange peel, and oakwood cold smoke.',
+      price: 490.00,
+      category: 'Beverages',
+      available: true,
+      imageUrl: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b',
+    },
   ];
 
   for (const item of menuItems) {
@@ -146,14 +194,16 @@ async function main(): Promise<void> {
       await prisma.menuItem.create({ data: item });
     }
   }
-  console.log('  ✔ Menu items seeded: 6 dishes across 4 categories');
+  console.log('  ✔ Menu items seeded: 12 expanded dishes across 4 categories');
 
   // 5. Seed Inventory Items
   const inventoryItems = [
     { name: 'Arborio Rice',           quantity: 8.0,  unit: 'kg',   reorderThreshold: 5.0  },
     { name: 'Wild Mushrooms',         quantity: 3.5,  unit: 'kg',   reorderThreshold: 2.0  },
-    { name: 'Parmesan Cheese',        quantity: 4.0,  unit: 'kg',   reorderThreshold: 3.0  }, // low stock
+    { name: 'Parmesan Cheese',        quantity: 4.0,  unit: 'kg',   reorderThreshold: 3.0  },
     { name: 'Atlantic Salmon',        quantity: 12.0, unit: 'kg',   reorderThreshold: 4.0  },
+    { name: 'Wagyu Beef',             quantity: 10.0, unit: 'kg',   reorderThreshold: 3.0  },
+    { name: 'Chilean Sea Bass',       quantity: 7.0,  unit: 'kg',   reorderThreshold: 2.0  },
     { name: 'Asparagus',              quantity: 6.0,  unit: 'kg',   reorderThreshold: 3.0  },
     { name: 'Sourdough Bread',        quantity: 20.0, unit: 'units',reorderThreshold: 10.0 },
     { name: 'Cherry Tomatoes',        quantity: 5.0,  unit: 'kg',   reorderThreshold: 3.0  },
@@ -164,7 +214,6 @@ async function main(): Promise<void> {
     { name: 'Mixed Berries',          quantity: 3.0,  unit: 'kg',   reorderThreshold: 1.5  },
     { name: 'Extra Virgin Olive Oil', quantity: 6.0,  unit: 'L',    reorderThreshold: 2.0  },
     { name: 'White Truffle Oil',      quantity: 0.8,  unit: 'L',    reorderThreshold: 1.0  }, // low stock
-    { name: 'Heavy Cream',            quantity: 5.0,  unit: 'L',    reorderThreshold: 2.0  },
   ];
 
   for (const inv of inventoryItems) {
@@ -173,13 +222,9 @@ async function main(): Promise<void> {
       await prisma.inventoryItem.create({ data: inv });
     }
   }
-  console.log('  ✔ Inventory seeded: 15 items (3 intentionally below reorder threshold)');
+  console.log('  ✔ Inventory seeded: 16 items');
 
   console.log('\n✅ Seed completed successfully!');
-  console.log('\n📋 Seed Credentials:');
-  console.log('   Admin:    admin@smartdine.com    / Password123');
-  console.log('   Staff:    staff@smartdine.com    / Password123');
-  console.log('   Customer: customer@smartdine.com / Password123');
 }
 
 main()

@@ -11,7 +11,9 @@ import {
   ArrowRight,
   Flame,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -75,11 +77,43 @@ export default function AssistantPage() {
 
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [recommendations, setRecommendations] = useState<DishItem[]>(FALLBACK_DISHES);
   const [loadingRecs, setLoadingRecs] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { token } = useAuth();
+
+  const startVoiceInput = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice input is supported on Chrome/Edge/Safari. Please type your query.');
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) {
+          setInputMessage(transcript);
+          handleSendMessage(transcript);
+        }
+      };
+
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
 
   useEffect(() => {
     fetchRecommendations();
@@ -357,11 +391,23 @@ export default function AssistantPage() {
               >
                 <input
                   type="text"
-                  placeholder="Ask about dishes, wine pairings, dietary options..."
+                  placeholder="Ask or click 🎙️ to speak dish requests..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   className="flex-1 rounded-2xl bg-stone-950 border border-stone-800 px-4 py-2.5 text-xs text-white placeholder-stone-400 focus:outline-none focus:border-amber-500"
                 />
+                <button
+                  type="button"
+                  onClick={startVoiceInput}
+                  className={`p-2.5 rounded-2xl border transition-all ${
+                    isListening
+                      ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse ring-2 ring-red-500/50'
+                      : 'bg-stone-800 border-stone-700 text-amber-400 hover:bg-stone-750'
+                  }`}
+                  title="Speak to Assistant (Voice Input)"
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
                 <button
                   type="submit"
                   disabled={isTyping || !inputMessage.trim()}
