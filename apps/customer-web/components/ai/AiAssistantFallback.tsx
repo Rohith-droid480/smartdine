@@ -66,14 +66,20 @@ export function AiAssistantWidget() {
         const lower = q.toLowerCase();
         let fallbackReply = 'Our chef recommends trying our Signature Berry Mocktail paired with Grilled Salmon or Truffle Mushroom Risotto tonight!';
 
-        if (lower.includes('veggie') || lower.includes('vegetarian')) {
-          fallbackReply = 'For vegetarian selections, I highly recommend our Truffle Mushroom Risotto prepared with Arborio rice, or our Artisanal Garlic Bruschetta!';
+        if (lower.includes('sweet') || lower.includes('dessert') || lower.includes('chocolate') || lower.includes('tiramisu')) {
+          fallbackReply = '🍰 Sweet & Dessert Recommendations: Our Valrhona Chocolate Fondant with molten dark chocolate center (₹420.00) or Matcha Green Tea Tiramisu (₹390.00).';
+        } else if (lower.includes('spicy') || lower.includes('chili') || lower.includes('spice') || lower.includes('paella')) {
+          fallbackReply = '🌶️ Spicy & Zesty Dishes: Saffron Seafood Paella infused with chili-infused Bomba rice, jumbo prawns, and calamari (₹720.00).';
+        } else if (lower.includes('sour') || lower.includes('citrus') || lower.includes('lemon') || lower.includes('tangy')) {
+          fallbackReply = '🍋 Sour & Tangy Citrus Pairings: Pan-Seared Chilean Sea Bass in champagne lemon butter sauce (₹680.00) and Artisanal Garlic Bruschetta (₹320.00).';
+        } else if (lower.includes('hot') || lower.includes('warm') || lower.includes('sizzling') || lower.includes('steak')) {
+          fallbackReply = '🔥 Hot Searing Entrées: Grade A5 Wagyu Beef Tenderloin served with hot truffle jus (₹850.00) or Truffle Mushroom Risotto (₹650.00).';
+        } else if (lower.includes('cold') || lower.includes('chilled') || lower.includes('refreshing') || lower.includes('ice') || lower.includes('mocktail')) {
+          fallbackReply = '❄️ Cold & Chilled Refreshments: Signature Berry Mocktail with muddled fresh berries & sparkling soda (₹250.00), or Charred Asparagus with Fresh Burrata (₹410.00).';
+        } else if (lower.includes('veggie') || lower.includes('vegetarian')) {
+          fallbackReply = '🌿 Vegetarian Highlights: Truffle Mushroom Risotto prepared with Arborio rice and shaved parmesan (₹650.00), or Artisanal Garlic Bruschetta (₹320.00).';
         } else if (lower.includes('wine') || lower.includes('pair') || lower.includes('beverage') || lower.includes('drink')) {
-          fallbackReply = 'For main courses like our Grilled Atlantic Salmon, a crisp Sauvignon Blanc or Signature Berry Mocktail makes a sublime pairing!';
-        } else if (lower.includes('dessert') || lower.includes('sweet')) {
-          fallbackReply = 'Our Valrhona Chocolate Fondant with molten center and vanilla bean gelato is our top pastry recommendation tonight!';
-        } else if (lower.includes('recommend') || lower.includes('special') || lower.includes('dinner')) {
-          fallbackReply = 'Tonight\'s chef highlight is the Wagyu Beef Tenderloin with truffle jus (₹850.00) or Pan-seared Sea Bass (₹680.00).';
+          fallbackReply = '🍷 Beverage & Cocktail Pairings: Smoked Old Fashioned Cocktail (₹490.00) or Signature Berry Mocktail (₹250.00).';
         }
 
         setMessages((prev) => [...prev, { sender: 'assistant', text: fallbackReply }]);

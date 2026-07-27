@@ -76,6 +76,27 @@ export function detectIntent(query: string): DetectedIntent {
     return { intent: 'reservations', isOperational: true, sources: ['reservations', 'tables'] };
   }
 
+  // Flavor Profile & Temperature Category Matching
+  if (q.includes('sweet') || q.includes('dessert') || q.includes('chocolate') || q.includes('tiramisu') || q.includes('fondant')) {
+    return { intent: 'flavor_sweet', isOperational: true, sources: ['menu_items'] };
+  }
+
+  if (q.includes('spicy') || q.includes('chili') || q.includes('spice') || q.includes('paella') || q.includes('pepper')) {
+    return { intent: 'flavor_spicy', isOperational: true, sources: ['menu_items'] };
+  }
+
+  if (q.includes('sour') || q.includes('citrus') || q.includes('lemon') || q.includes('tangy') || q.includes('zesty')) {
+    return { intent: 'flavor_sour', isOperational: true, sources: ['menu_items'] };
+  }
+
+  if (q.includes('hot') || q.includes('warm') || q.includes('sizzling') || q.includes('seared') || q.includes('steak') || q.includes('soup')) {
+    return { intent: 'flavor_hot', isOperational: true, sources: ['menu_items'] };
+  }
+
+  if (q.includes('cold') || q.includes('chilled') || q.includes('refreshing') || q.includes('ice') || q.includes('mocktail') || q.includes('salad')) {
+    return { intent: 'flavor_cold', isOperational: true, sources: ['menu_items'] };
+  }
+
   if (q.includes('menu') || q.includes('dish') || q.includes('popular') || q.includes('top seller') || q.includes('best selling') || q.includes('food')) {
     return { intent: 'menu_performance', isOperational: true, sources: ['menu_items', 'order_items'] };
   }
@@ -113,6 +134,31 @@ export async function buildIntentContext(intent: string): Promise<{ contextSumma
   const rawDataSummary: Record<string, unknown> = {};
 
   switch (intent) {
+    case 'flavor_sweet': {
+      contextSummary = 'Sweet & Dessert Selections: Valrhona Chocolate Fondant with molten chocolate center (₹420.00) and Matcha Green Tea Tiramisu dusted with green tea powder (₹390.00).';
+      break;
+    }
+
+    case 'flavor_spicy': {
+      contextSummary = 'Spicy & Zesty Dishes: Saffron Seafood Paella with chili-infused Bomba rice, jumbo prawns, calamari, and mussels (₹720.00).';
+      break;
+    }
+
+    case 'flavor_sour': {
+      contextSummary = 'Sour & Tangy Citrus Pairings: Pan-Seared Chilean Sea Bass with lemon champagne butter sauce (₹680.00) and Artisanal Garlic Bruschetta with vine-ripened tomatoes and balsamic reduction (₹320.00).';
+      break;
+    }
+
+    case 'flavor_hot': {
+      contextSummary = 'Hot Searing Entrées: Grade A5 Wagyu Beef Tenderloin served with hot truffle jus (₹850.00) and Truffle Mushroom Risotto cooked with Arborio rice (₹650.00).';
+      break;
+    }
+
+    case 'flavor_cold': {
+      contextSummary = 'Cold & Chilled Refreshments: Signature Berry Mocktail with muddled fresh berries & sparkling soda (₹250.00), Crisp Caesar Salad (₹380.00), and Charred Asparagus with Fresh Burrata (₹410.00).';
+      break;
+    }
+
     case 'sales_summary': {
       const sales = await aiRepo.getSalesSummary(7);
       rawDataSummary['sales7Days'] = sales;
