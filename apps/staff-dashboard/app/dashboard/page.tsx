@@ -62,24 +62,24 @@ export default function DashboardPage() {
         getStaff(),
       ]);
 
-      // Calculate active orders (PENDING, PREPARING, READY)
+      // Calculate active orders (placed, preparing, ready, PENDING, PREPARING, READY)
       const activeOrdersCount = orders.filter((o: Order) =>
-        ['PENDING', 'PREPARING', 'READY'].includes(o.status)
+        ['placed', 'preparing', 'ready', 'PENDING', 'PREPARING', 'READY'].includes(o.status)
       ).length;
 
       // Calculate reserved/seated tables
       const reservedTablesCount = reservations.filter((r: Reservation) =>
-        ['CONFIRMED', 'SEATED'].includes(r.status)
+        ['CONFIRMED', 'SEATED', 'confirmed', 'seated'].includes(r.status)
       ).length;
 
       // Calculate low stock / out of stock items
       const lowStockCount = inventory.filter((i: InventoryItem) =>
-        ['LOW_STOCK', 'OUT_OF_STOCK'].includes(i.status)
+        ['LOW_STOCK', 'OUT_OF_STOCK', 'low_stock', 'out_of_stock'].includes(i.status)
       ).length;
 
       // Calculate staff on duty / break
       const staffOnShiftCount = staff.filter((s: StaffMember) =>
-        ['ON_DUTY', 'ON_BREAK'].includes(s.shiftStatus)
+        ['ON_DUTY', 'ON_BREAK', 'on_duty', 'on_break'].includes(s.shiftStatus)
       ).length;
 
       setMetrics({
@@ -101,6 +101,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // 3-second background polling for live executive metrics
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [fetchDashboardData]);
 
   // Timeline Activity Log
