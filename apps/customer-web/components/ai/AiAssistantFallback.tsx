@@ -27,25 +27,37 @@ export function AiAssistantWidget() {
       const res = await api.ai.sendMessage(q, token);
 
       const data = res.data as any;
-      if (res.success && data && (data.answer || data.message)) {
-        setMessages((prev) => [...prev, { sender: 'assistant', text: data.answer || data.message }]);
+      if (res.success && data && (data.answer || data.reply || data.message)) {
+        setMessages((prev) => [...prev, { sender: 'assistant', text: data.answer || data.reply || data.message }]);
       } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: 'assistant',
-            text: 'Our chef recommends trying our Signature Berry Mocktail paired with Grilled Salmon or Truffle Mushroom Risotto tonight!',
-          },
-        ]);
+        const lower = q.toLowerCase();
+        let fallbackReply = 'Our chef recommends trying our Signature Berry Mocktail paired with Grilled Salmon or Truffle Mushroom Risotto tonight!';
+
+        if (lower.includes('veggie') || lower.includes('vegetarian')) {
+          fallbackReply = 'For vegetarian selections, I highly recommend our Truffle Mushroom Risotto prepared with Arborio rice and shaved parmesan, or the Artisanal Garlic Bruschetta!';
+        } else if (lower.includes('wine') || lower.includes('pair') || lower.includes('beverage') || lower.includes('drink')) {
+          fallbackReply = 'For main courses like our Grilled Atlantic Salmon, a crisp Sauvignon Blanc or Signature Berry Mocktail makes a sublime pairing!';
+        } else if (lower.includes('dessert') || lower.includes('sweet')) {
+          fallbackReply = 'Our Valrhona Chocolate Fondant with molten center and vanilla bean gelato is our top pastry recommendation tonight!';
+        } else if (lower.includes('recommend') || lower.includes('special') || lower.includes('dinner')) {
+          fallbackReply = 'Tonight\'s chef highlight is the Pan-seared Atlantic Salmon served with roasted asparagus and lemon butter sauce (₹450.00).';
+        }
+
+        setMessages((prev) => [...prev, { sender: 'assistant', text: fallbackReply }]);
       }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: 'Our chef recommends trying our Signature Berry Mocktail paired with Grilled Salmon or Truffle Mushroom Risotto tonight!',
-        },
-      ]);
+      const lower = q.toLowerCase();
+      let fallbackReply = 'Our chef recommends trying our Signature Berry Mocktail paired with Grilled Salmon or Truffle Mushroom Risotto tonight!';
+
+      if (lower.includes('veggie') || lower.includes('vegetarian')) {
+        fallbackReply = 'For vegetarian selections, I highly recommend our Truffle Mushroom Risotto prepared with Arborio rice and shaved parmesan, or the Artisanal Garlic Bruschetta!';
+      } else if (lower.includes('wine') || lower.includes('pair') || lower.includes('beverage') || lower.includes('drink')) {
+        fallbackReply = 'For main courses like our Grilled Atlantic Salmon, a crisp Sauvignon Blanc or Signature Berry Mocktail makes a sublime pairing!';
+      } else if (lower.includes('dessert') || lower.includes('sweet')) {
+        fallbackReply = 'Our Valrhona Chocolate Fondant with molten center and vanilla bean gelato is our top pastry recommendation tonight!';
+      }
+
+      setMessages((prev) => [...prev, { sender: 'assistant', text: fallbackReply }]);
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +123,7 @@ export function AiAssistantWidget() {
                   <div
                     className={`max-w-[85%] rounded-xl px-3.5 py-2.5 leading-relaxed ${
                       m.sender === 'user'
-                        ? 'bg-amber-500 text-stone-950 font-medium'
+                        ? 'bg-amber-500 text-stone-950 font-bold'
                         : 'bg-stone-800 border border-stone-700 text-stone-200'
                     }`}
                   >
