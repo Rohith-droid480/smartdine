@@ -32,7 +32,8 @@ import {
 } from './mockApi';
 
 // Centralized API Base URL — aligned with SmartDine monorepo convention
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000';
+const rawEnvUrl = (process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000').trim().replace(/\/+$/, '');
+const API_BASE_URL = rawEnvUrl.replace(/\/api\/v1$/, '');
 const AUTH_TOKEN_KEY = 'smartdine_staff_token';
 
 // Internal simulated delay helper for fallback

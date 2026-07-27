@@ -2,10 +2,6 @@
 // apps/customer-web/lib/api.ts
 // Typed API client for the SmartDine backend.
 // All fetch calls go through this module — never call fetch() directly in pages.
-//
-// Usage:
-//   import { api } from '@/lib/api';
-//   const user = await api.auth.getMe();
 // =============================================================================
 
 import type {
@@ -25,10 +21,9 @@ import type {
   VerifyOtpPayload,
 } from '@smartdine/shared/types';
 
-const BASE_URL =
-  process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000';
-
-const API_BASE = `${BASE_URL}/api/v1`;
+// Safely format base URL regardless of whether trailing /api/v1 was included in env
+const rawBase = (process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000').trim().replace(/\/+$/, '');
+const API_BASE = rawBase.endsWith('/api/v1') ? rawBase : `${rawBase}/api/v1`;
 
 // ---------------------------------------------------------------------------
 // Core fetcher
