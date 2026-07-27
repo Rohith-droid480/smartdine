@@ -1,7 +1,6 @@
 // =============================================================================
 // server/src/config/cors.ts
-// CORS configuration. Origins are read from env (comma-separated list)
-// so you can whitelist both frontend apps without touching code.
+// CORS configuration. Supports wildcards (*), Vercel deployments, and env whitelist.
 // =============================================================================
 
 import type { CorsOptions } from 'cors';
@@ -11,13 +10,19 @@ const allowedOrigins: string[] = env.CORS_ORIGIN.split(',').map((o) => o.trim())
 
 export const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) {
       callback(null, true);
       return;
     }
 
-    if (allowedOrigins.includes(origin)) {
+    // Allow wildcard '*', Vercel deployment subdomains, or exact whitelist matches
+    if (
+      allowedOrigins.includes('*') ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost')
+    ) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: origin "${origin}" is not allowed`));
