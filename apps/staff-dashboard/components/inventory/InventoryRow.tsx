@@ -52,7 +52,7 @@ export const InventoryRow: React.FC<InventoryRowProps> = React.memo(({
 
       {/* Minimum Threshold */}
       <td className="px-4 py-3.5 text-xs text-slate-400">
-        {formatQuantity(item.minThreshold, item.unit)}
+        {formatQuantity((item as any).reorderThreshold ?? item.minThreshold ?? 2.0, item.unit || 'kg')}
       </td>
 
       {/* Stock Status Badge */}

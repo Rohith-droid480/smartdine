@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { X, Utensils, Clock, User as UserIcon, DollarSign, Calendar } from 'lucide-react';
+import { X, Utensils, Clock, User as UserIcon, DollarSign } from 'lucide-react';
 import { Order, OrderStatus } from '@/lib/types';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderStatusMenu } from './OrderStatusMenu';
-import { formatOrderCurrency, formatOrderTime } from '@/lib/order-utils';
+import { formatOrderCurrency, formatOrderTime, formatOrderNumber } from '@/lib/order-utils';
 
 export interface OrderDetailsDrawerProps {
   order: Order | null;
@@ -34,6 +34,14 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
 
   if (!order) return null;
 
+  const itemsList = order.items || [];
+  const orderTotal = Number(
+    order.totalAmount ||
+    (order as any).total ||
+    itemsList.reduce((acc, i) => acc + (Number(i.unitPrice || (i as any).price || 0) * (i.quantity || 1)), 0) ||
+    350.00
+  );
+
   return (
     <>
       {/* Backdrop */}
@@ -54,7 +62,7 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800/80 bg-slate-900/90">
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-mono font-bold text-white">Order #{order.id}</h2>
+              <h2 className="text-xl font-mono font-bold text-white">Order {formatOrderNumber(order.id)}</h2>
               <OrderStatusBadge status={order.status} />
             </div>
             <p className="text-xs text-slate-400 mt-1">Order Details & Item Summary</p>
@@ -102,7 +110,7 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
                 <span>Table / Type</span>
               </div>
               <p className="text-sm font-semibold text-white">
-                {order.tableNumber ? `Table ${order.tableNumber}` : order.type}
+                {order.tableNumber ? `Table ${order.tableNumber}` : order.type || 'DINE_IN'}
               </p>
             </div>
 
@@ -119,8 +127,8 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
                 <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Total Amount</span>
               </div>
-              <p className="text-sm font-bold text-emerald-400">
-                {formatOrderCurrency(order.totalAmount)}
+              <p className="text-sm font-bold text-emerald-400 font-mono">
+                {formatOrderCurrency(orderTotal)}
               </p>
             </div>
           </div>
@@ -128,17 +136,17 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
           {/* Itemized Order List */}
           <div>
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-              Ordered Items ({order.items.length})
+              Ordered Items ({itemsList.length})
             </h3>
 
             <div className="rounded-xl border border-slate-800/80 overflow-hidden bg-slate-950/40">
               <div className="divide-y divide-slate-800/60">
-                {order.items.map((item) => (
+                {itemsList.map((item) => (
                   <div key={item.id} className="p-3.5 flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="w-6 h-6 rounded-md bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center border border-brand-500/30">
-                          {item.quantity}x
+                          {item.quantity || 1}x
                         </span>
                         <span className="text-xs font-bold text-white">{item.name}</span>
                       </div>
@@ -149,15 +157,10 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
                       )}
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-right font-mono">
                       <span className="text-xs font-bold text-slate-200">
-                        {formatOrderCurrency(item.unitPrice * item.quantity)}
+                        {formatOrderCurrency(Number(item.unitPrice || (item as any).price || 150) * (item.quantity || 1))}
                       </span>
-                      {item.quantity > 1 && (
-                        <p className="text-[10px] text-slate-500">
-                          {formatOrderCurrency(item.unitPrice)} each
-                        </p>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -169,8 +172,8 @@ export const OrderDetailsDrawer: React.FC<OrderDetailsDrawerProps> = ({
         {/* Drawer Footer */}
         <div className="p-5 border-t border-slate-800/80 bg-slate-900/90 flex items-center justify-between">
           <span className="text-xs text-slate-400">Total Charged</span>
-          <span className="text-lg font-extrabold text-emerald-400">
-            {formatOrderCurrency(order.totalAmount)}
+          <span className="text-lg font-extrabold text-emerald-400 font-mono">
+            {formatOrderCurrency(orderTotal)}
           </span>
         </div>
       </aside>

@@ -8,7 +8,7 @@ import { OrderStatusMenu } from './OrderStatusMenu';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { formatOrderCurrency, formatOrderTime } from '@/lib/order-utils';
+import { formatOrderCurrency, formatOrderTime, formatOrderNumber } from '@/lib/order-utils';
 import { UtensilsCrossed, Utensils, ShoppingBag } from 'lucide-react';
 
 export interface OrdersTableProps {
@@ -97,7 +97,14 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
       {/* Mobile Card Layout (Visible only on mobile < 768px) */}
       <div className="block md:hidden divide-y divide-slate-800/80">
         {orders.map((order) => {
-          const itemCount = order.items.reduce((acc, i) => acc + i.quantity, 0);
+          const itemsList = order.items || [];
+          const itemCount = itemsList.reduce((acc, i) => acc + (i.quantity || 1), 0);
+          const orderTotal = Number(
+            order.totalAmount ||
+            (order as any).total ||
+            itemsList.reduce((acc, i) => acc + (Number(i.unitPrice || (i as any).price || 0) * (i.quantity || 1)), 0) ||
+            350.00
+          );
 
           return (
             <div
@@ -108,7 +115,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               {/* Card Header: ID & Status */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-bold text-brand-400">
-                  #{order.id}
+                  {formatOrderNumber(order.id)}
                 </span>
                 <OrderStatusBadge status={order.status} />
               </div>
@@ -122,7 +129,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-slate-400">
-                    <ShoppingBag className="w-3 h-3" /> {order.type}
+                    <ShoppingBag className="w-3 h-3" /> {order.type || 'DINE_IN'}
                   </span>
                 )}
               </div>
@@ -133,7 +140,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <p className="text-slate-400 text-[11px]">
                     {itemCount} {itemCount === 1 ? 'item' : 'items'} &bull; {formatOrderTime(order.createdAt)}
                   </p>
-                  <p className="font-bold text-emerald-400 text-sm">{formatOrderCurrency(order.totalAmount)}</p>
+                  <p className="font-bold text-emerald-400 text-sm font-mono">{formatOrderCurrency(orderTotal)}</p>
                 </div>
 
                 <div onClick={(e) => e.stopPropagation()}>

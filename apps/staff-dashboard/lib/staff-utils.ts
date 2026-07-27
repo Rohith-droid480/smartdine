@@ -77,8 +77,8 @@ export function getStaffRoleLabel(role: StaffRole | string): string {
   }
 }
 
-export function formatHourlyRate(rate: number): string {
-  return `$${rate.toFixed(2)}/hr`;
+export function formatHourlyRate(rate?: number): string {
+  return `₹${Number(rate || 0).toFixed(2)}/hr`;
 }
 
 export function formatJoinedDate(dateString: string): string {

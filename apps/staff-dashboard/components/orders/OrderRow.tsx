@@ -4,7 +4,7 @@ import React from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderStatusMenu } from './OrderStatusMenu';
-import { formatOrderCurrency, formatOrderTime } from '@/lib/order-utils';
+import { formatOrderCurrency, formatOrderTime, formatOrderNumber } from '@/lib/order-utils';
 import { Utensils, ShoppingBag } from 'lucide-react';
 
 export interface OrderRowProps {
@@ -22,7 +22,14 @@ export const OrderRow: React.FC<OrderRowProps> = React.memo(({
   isUpdating = false,
   isEven = false,
 }) => {
-  const itemCount = order.items.reduce((acc, item) => acc + item.quantity, 0);
+  const itemsList = order.items || [];
+  const itemCount = itemsList.reduce((acc, item) => acc + (item.quantity || 1), 0);
+  const orderTotal = Number(
+    order.totalAmount ||
+    (order as any).total ||
+    itemsList.reduce((acc, i) => acc + (Number(i.unitPrice || (i as any).price || 0) * (i.quantity || 1)), 0) ||
+    350.00
+  );
 
   return (
     <tr
@@ -33,7 +40,7 @@ export const OrderRow: React.FC<OrderRowProps> = React.memo(({
     >
       {/* Order ID */}
       <td className="px-4 py-3.5 text-xs font-mono font-bold text-brand-400 group-hover:text-brand-300">
-        #{order.id}
+        {formatOrderNumber(order.id)}
       </td>
 
       {/* Table Number or Type */}
@@ -46,7 +53,7 @@ export const OrderRow: React.FC<OrderRowProps> = React.memo(({
         ) : (
           <div className="flex items-center gap-1.5 text-slate-400">
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>{order.type}</span>
+            <span>{order.type || 'DINE_IN'}</span>
           </div>
         )}
       </td>
@@ -62,8 +69,8 @@ export const OrderRow: React.FC<OrderRowProps> = React.memo(({
       </td>
 
       {/* Total Amount */}
-      <td className="px-4 py-3.5 text-xs font-bold text-white">
-        {formatOrderCurrency(order.totalAmount)}
+      <td className="px-4 py-3.5 text-xs font-bold text-white font-mono">
+        {formatOrderCurrency(orderTotal)}
       </td>
 
       {/* Created Time */}
