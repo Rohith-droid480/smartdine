@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { User } from '@/lib/types';
 import { useOrders } from '@/hooks/useOrders';
-import { formatOrderCurrency } from '@/lib/order-utils';
+import { formatOrderCurrency, normalizeOrderStatus } from '@/lib/order-utils';
 
 export interface TopNavbarProps {
   user?: User;
@@ -37,10 +37,11 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { allOrders } = useOrders();
 
-  // Active / placed orders awaiting kitchen prep
-  const pendingOrders = allOrders.filter(
-    (o) => o.status === 'placed' || o.status === 'preparing'
-  );
+  // Active / placed orders awaiting kitchen prep (case insensitive normalized)
+  const pendingOrders = allOrders.filter((o) => {
+    const norm = normalizeOrderStatus(o.status);
+    return norm === 'placed' || norm === 'preparing';
+  });
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 transition-all">
