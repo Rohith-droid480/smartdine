@@ -13,6 +13,8 @@ export interface NewOrderAlertInfo {
   itemCount: number;
 }
 
+const globalPlayedAudioOrderIds = new Set<string>();
+
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -131,11 +133,18 @@ export function useOrders() {
       const data = await getOrders();
       const sorted = sortOrdersByDate(data, 'desc');
 
-      // Detect any newly created order ID
-      if (isInitializedRef.current) {
+      // Initial load: record existing order IDs silently
+      if (!isInitializedRef.current) {
+        sorted.forEach((o) => globalPlayedAudioOrderIds.add(o.id));
+        isInitializedRef.current = true;
+      } else {
+        // Subsequent poll: detect brand new PLACED orders only
         for (const o of sorted) {
-          if (!knownOrderIdsRef.current.has(o.id)) {
-            // Found a brand new order created live by customer!
+          const normStatus = String(o.status).toLowerCase();
+          const isPlaced = normStatus === 'placed' || normStatus === 'pending';
+
+          if (isPlaced && !globalPlayedAudioOrderIds.has(o.id)) {
+            globalPlayedAudioOrderIds.add(o.id);
             playNotificationChime();
             setLatestAlert({
               id: o.id,
@@ -147,13 +156,14 @@ export function useOrders() {
             break;
           }
         }
-      }
 
-      // Update known order IDs set
-      const newIdSet = new Set<string>();
-      sorted.forEach((o) => newIdSet.add(o.id));
-      knownOrderIdsRef.current = newIdSet;
-      isInitializedRef.current = true;
+        // Keep global ID set updated with all active IDs
+        sorted.forEach((o) => {
+          if (!globalPlayedAudioOrderIds.has(o.id)) {
+            globalPlayedAudioOrderIds.add(o.id);
+          }
+        });
+      }
 
       setOrders(sorted);
       setError(null);
