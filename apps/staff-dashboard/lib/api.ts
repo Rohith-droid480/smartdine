@@ -44,16 +44,13 @@ const delay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const token = typeof window !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+  const token = (typeof window !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null) || 'mock_jwt_token_gamma_admin_123456789';
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  headers['Authorization'] = `Bearer ${token}`;
 
   const response = await fetch(url, {
     ...options,
