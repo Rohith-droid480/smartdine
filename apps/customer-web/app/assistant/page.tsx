@@ -97,9 +97,9 @@ export default function AssistantPage() {
     try {
       let replyText = '';
       if (token) {
-        const res = await api.ai.sendMessage(token, textToSend);
+        const res = await api.ai.sendMessage(textToSend, token);
         if (res.success && res.data) {
-          replyText = res.data.reply;
+          replyText = (res.data as any).answer || (res.data as any).reply || (res.data as any).message || '';
         }
       }
 
