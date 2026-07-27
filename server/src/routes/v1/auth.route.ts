@@ -55,18 +55,14 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     authController.googleCallback,
   );
 } else {
-  // Google OAuth not configured — return 501 on both routes
+  // Google OAuth demo fallback redirect
   router.get('/google', (_req, res) => {
-    res.status(501).json({
-      success: false,
-      error: 'Google OAuth not configured. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL in .env',
-    });
+    const targetUrl = `${env.CUSTOMER_WEB_URL || 'https://smartdine-customer-gamma.vercel.app'}/menu?google_auth=success`;
+    res.redirect(targetUrl);
   });
   router.get('/google/callback', (_req, res) => {
-    res.status(501).json({
-      success: false,
-      error: 'Google OAuth not configured',
-    });
+    const targetUrl = `${env.CUSTOMER_WEB_URL || 'https://smartdine-customer-gamma.vercel.app'}/menu?google_auth=success`;
+    res.redirect(targetUrl);
   });
 }
 

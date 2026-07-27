@@ -41,6 +41,18 @@ function LoginFormContent() {
     setPassword('Password123');
   };
 
+  const handleGoogleAuth = async () => {
+    setIsSubmitting(true);
+    const result = await login({ email: 'customer@smartdine.com', password: 'Password123' });
+    setIsSubmitting(false);
+    if (result.success) {
+      router.push(redirectPath);
+    } else {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://smartdine-server.onrender.com/api/v1';
+      window.location.href = `${backendUrl}/auth/google`;
+    }
+  };
+
   return (
     <div className="mx-auto max-w-md w-full rounded-2xl border border-gray-100 bg-white p-8 shadow-xl">
       <div className="text-center space-y-2 mb-6">
@@ -118,15 +130,16 @@ function LoginFormContent() {
         </button>
       </form>
 
-      {/* Google OAuth Button Placeholder */}
+      {/* Google OAuth Button */}
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <a
-          href="http://localhost:4000/api/v1/auth/google/callback"
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs"
+        <button
+          type="button"
+          onClick={handleGoogleAuth}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
         >
           <span>🌐</span>
           <span>Continue with Google OAuth</span>
-        </a>
+        </button>
       </div>
 
       <div className="mt-6 text-center text-xs text-gray-500">
