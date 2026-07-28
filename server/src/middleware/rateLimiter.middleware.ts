@@ -1,7 +1,7 @@
 // =============================================================================
 // server/src/middleware/rateLimiter.middleware.ts
 // Rate limiting middleware using express-rate-limit.
-// Configured with high capacity / bypass during hackathon evaluation.
+// Configured with active, realistic limits for multi-tab polling and demo traffic.
 // =============================================================================
 
 import rateLimit from 'express-rate-limit';
@@ -15,11 +15,12 @@ const rateLimitResponse = (retryAfter: number) => ({
 });
 
 /**
- * General API rate limiter — high capacity for evaluation demo polling.
+ * General API rate limiter — 600 requests per 1 minute window.
+ * Supports up to 10 requests per second per IP (accommodates 5-10 concurrent polling tabs).
  */
 export const apiRateLimiter = rateLimit({
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: 10000,
+  windowMs: 60_000, // 1 minute sliding window
+  max: 600,         // 600 requests per minute
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
@@ -27,15 +28,16 @@ export const apiRateLimiter = rateLimit({
     const retryAfter = Math.ceil(options.windowMs / 1000);
     res.status(options.statusCode).json(rateLimitResponse(retryAfter));
   },
-  skip: () => true, // Skip general rate limiting during hackathon evaluation
+  skip: (req) => env.NODE_ENV === 'test' || req.ip === '127.0.0.1',
 });
 
 /**
- * AI rate limiter — protect against runaway API costs while allowing smooth demos.
+ * AI rate limiter — 60 requests per 1 minute window.
+ * Protects against runaway API costs while allowing continuous query interaction.
  */
 export const aiRateLimiter = rateLimit({
-  windowMs: 60_000,
-  max: 100,
+  windowMs: 60_000, // 1 minute sliding window
+  max: 60,         // 60 requests per minute
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
@@ -44,15 +46,16 @@ export const aiRateLimiter = rateLimit({
     res.status(options.statusCode).json(rateLimitResponse(retryAfter));
   },
   keyGenerator: (req) => req.user?.sub ?? req.ip ?? 'unknown',
-  skip: () => true, // Skip AI rate limiting during hackathon evaluation
+  skip: (req) => env.NODE_ENV === 'test' || req.ip === '127.0.0.1',
 });
 
 /**
- * Auth-specific limiter — high capacity for evaluation demo testing.
+ * Auth-specific limiter — 60 requests per 1 minute window.
+ * Protects against auth brute-force attacks while accommodating active demo testing.
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5000,
+  windowMs: 60_000, // 1 minute sliding window
+  max: 60,         // 60 requests per minute
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
@@ -60,5 +63,5 @@ export const authRateLimiter = rateLimit({
     const retryAfter = Math.ceil(options.windowMs / 1000);
     res.status(options.statusCode).json(rateLimitResponse(retryAfter));
   },
-  skip: () => true, // Skip rate limiting during hackathon evaluation
+  skip: (req) => env.NODE_ENV === 'test' || req.ip === '127.0.0.1',
 });
