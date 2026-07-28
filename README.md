@@ -15,7 +15,7 @@
 
 ## 👥 Team Information & Roles
 
-- **Team Name**: `SmartDine Innovators`
+- **Team Name**: `HackZone`
 - **Team Lead Name**: **Rohith P** (*Full-Stack Architect & Real-Time Systems Integration*)
 - **Team Members & Responsibilities**:
   - 👨‍💻 **Rohith P** — Team Lead & Full-Stack Architect (Monorepo Setup, Real-Time Polling, Status Lifecycle, Production Hardening)

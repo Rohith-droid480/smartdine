@@ -77,7 +77,7 @@ export function Footer() {
         {/* Copyright Footer */}
         <div className="border-t border-stone-900 pt-6 text-center text-[11px] text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>&copy; {new Date().getFullYear()} SmartDine Monorepo System. All rights reserved.</span>
-          <span className="text-stone-400 font-semibold">Built by Team SmartDine Innovators</span>
+          <span className="text-stone-400 font-semibold">Built by Team HackZone</span>
         </div>
       </div>
     </footer>
