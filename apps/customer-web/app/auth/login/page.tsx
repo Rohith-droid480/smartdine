@@ -64,9 +64,12 @@ function LoginFormContent() {
       </div>
 
       {errorMsg && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 flex items-center justify-between">
-          <span>{errorMsg}</span>
-          <button onClick={() => setErrorMsg(null)} className="font-bold text-red-500 ml-2">✕</button>
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 flex items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-red-500 text-sm">⚠️</span>
+            <span className="font-medium">{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg(null)} className="font-bold text-red-400 hover:text-red-600 transition-colors">✕</button>
         </div>
       )}
 
