@@ -86,11 +86,13 @@ export function sortOrdersByDate(orders: Order[], direction: 'asc' | 'desc' = 'd
 }
 
 export function formatOrderCurrency(amount: number): string {
+  const safeAmount = Number(amount || 0);
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(isNaN(safeAmount) ? 0 : safeAmount);
 }
 
 export function formatOrderTime(dateString: string): string {
