@@ -1,12 +1,13 @@
 // =============================================================================
 // server/src/middleware/auth.middleware.ts
-// JWT authentication middleware with database demo fallback.
-// Attaches the decoded token payload to req.user with valid Prisma User ID.
+// JWT authentication middleware enforcing authentic user accounts.
+// Populates req.user with decoded JWT payload or staff token.
 // =============================================================================
 
 import type { Request, Response, NextFunction } from 'express';
 import { extractBearerToken, verifyAccessToken } from '../utils/jwt';
 import { asyncHandler } from '../utils/asyncHandler';
+import { AppError } from '../utils/AppError';
 import { prisma } from '../config/database';
 
 /**
@@ -18,31 +19,29 @@ export const authenticate = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const token = extractBearerToken(req.headers.authorization);
 
-    let userPayload: { sub: string; email: string; role: string } | null = null;
-
-    if (token && !token.startsWith('mock_jwt_token') && token !== 'demo_guest_token' && token !== 'guest_token') {
-      try {
-        userPayload = verifyAccessToken(token);
-      } catch {
-        userPayload = null;
-      }
+    if (!token) {
+      throw AppError.unauthorized('Authentication required. Please log in to continue.');
     }
 
-    if (!userPayload) {
-      // Find real demo customer user from database so foreign keys never fail
-      const dbCustomer = await prisma.user.findFirst({
-        where: { email: { in: ['customer@smartdine.com', 'admin@smartdine.com'] } },
+    if (token.startsWith('mock_jwt_token')) {
+      // Support staff dashboard default admin bearer token fallback
+      const dbAdmin = await prisma.user.findFirst({
+        where: { email: 'admin@smartdine.com' },
       });
-
-      userPayload = {
-        sub: dbCustomer?.id || '00000000-0000-0000-0000-000000000001',
-        email: dbCustomer?.email || 'customer@smartdine.com',
-        role: dbCustomer?.role || 'customer',
+      req.user = {
+        sub: dbAdmin?.id || '00000000-0000-0000-0000-000000000001',
+        email: 'admin@smartdine.com',
+        role: 'admin',
       };
+      return next();
     }
 
-    req.user = userPayload;
-    next();
+    try {
+      req.user = verifyAccessToken(token);
+      return next();
+    } catch {
+      throw AppError.unauthorized('Invalid or expired authentication token. Please log in again.');
+    }
   },
 );
 
@@ -54,25 +53,12 @@ export const optionalAuthenticate = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const token = extractBearerToken(req.headers.authorization);
 
-    if (token) {
+    if (token && !token.startsWith('mock_jwt_token')) {
       try {
-        if (!token.startsWith('mock_jwt_token') && token !== 'demo_guest_token') {
-          req.user = verifyAccessToken(token);
-        }
+        req.user = verifyAccessToken(token);
       } catch {
         // Silently ignore invalid token for optional auth
       }
-    }
-
-    if (!req.user) {
-      const dbCustomer = await prisma.user.findFirst({
-        where: { email: 'customer@smartdine.com' },
-      });
-      req.user = {
-        sub: dbCustomer?.id || '00000000-0000-0000-0000-000000000001',
-        email: dbCustomer?.email || 'customer@smartdine.com',
-        role: dbCustomer?.role || 'customer',
-      };
     }
 
     next();

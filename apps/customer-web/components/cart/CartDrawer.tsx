@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Utensils,
   Lock,
+  LogIn,
 } from 'lucide-react';
 import type { MenuItem } from '@smartdine/shared/types';
 
@@ -28,41 +29,38 @@ function getCartItemImage(menuItem: MenuItem): string {
   if (menuItem.imageUrl && menuItem.imageUrl.startsWith('http')) {
     return menuItem.imageUrl;
   }
-  const name = menuItem.name.toLowerCase();
-  const cat = (menuItem.category || '').toLowerCase();
-
-  if (name.includes('burger') || name.includes('wagyu')) {
-    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80';
+  const lowName = menuItem.name.toLowerCase();
+  if (lowName.includes('steak') || lowName.includes('beef') || lowName.includes('wagyu')) {
+    return 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80';
   }
-  if (name.includes('mocktail') || name.includes('berry') || cat.includes('beverage')) {
-    return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=400&q=80';
+  if (lowName.includes('salmon') || lowName.includes('fish') || lowName.includes('bass')) {
+    return 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80';
   }
-  if (name.includes('steak') || name.includes('beef') || name.includes('tomahawk')) {
-    return 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80';
+  if (lowName.includes('risotto') || lowName.includes('mushroom') || lowName.includes('truffle')) {
+    return 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=600&q=80';
   }
-  if (name.includes('risotto') || name.includes('pasta') || name.includes('truffle')) {
-    return 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=400&q=80';
+  if (lowName.includes('cocktail') || lowName.includes('drink') || lowName.includes('mocktail') || lowName.includes('berry')) {
+    return 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80';
   }
-  if (name.includes('salmon') || name.includes('fish') || name.includes('seafood') || name.includes('bruschetta')) {
-    return 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=400&q=80';
+  if (lowName.includes('tiramisu') || lowName.includes('chocolate') || lowName.includes('dessert') || lowName.includes('fondant')) {
+    return 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=80';
   }
-  if (name.includes('chocolate') || name.includes('fondant') || name.includes('dessert')) {
-    return 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80';
-  }
-  return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80';
+  return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const router = useRouter();
-  const { items, tableId, updateQuantity, removeItem, clearCart, subtotal, itemCount } = useCart();
-  const { token, user } = useAuth();
+  const { user, token } = useAuth();
+  const { items, updateQuantity, removeItem, clearCart, subtotal } = useCart();
 
-  const [inputTableId, setInputTableId] = useState<string>(tableId ?? '');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [inputTableId, setInputTableId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orderSuccessId, setOrderSuccessId] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const isAuthenticated = Boolean(user && token);
 
   const handleCheckout = async () => {
     setErrorMsg(null);
@@ -71,9 +69,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       return;
     }
 
+    if (!isAuthenticated || !token) {
+      setErrorMsg('Authentication Required: Please sign in to place your order.');
+      router.push('/auth/login?redirect=/menu');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const activeToken = token || localStorage.getItem('smartdine_customer_token') || 'demo_guest_token';
       const orderPayload: { tableId?: string; items: { menuItemId: string; quantity: number }[] } = {
         items: items.map((i) => ({
           menuItemId: i.menuItem.id,
@@ -85,7 +88,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         orderPayload.tableId = inputTableId.trim();
       }
 
-      const res = await api.orders.create(activeToken, orderPayload);
+      const res = await api.orders.create(token, orderPayload);
       if (res.success && res.data) {
         setOrderSuccessId(res.data.id);
         clearCart();
@@ -115,42 +118,66 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-white tracking-tight">Your Dining Cart</h2>
-                <p className="text-xs text-stone-400">{itemCount} {itemCount === 1 ? 'item' : 'items'} selected</p>
+                <h2 className="text-base font-bold text-white">Your Dining Order</h2>
+                <p className="text-2xs text-stone-400">
+                  {items.reduce((acc, i) => acc + i.quantity, 0)} Items Selected
+                </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-full p-2 text-stone-400 hover:text-white hover:bg-stone-800 transition-colors"
+              className="rounded-full p-2 text-stone-400 hover:bg-stone-800 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-            {/* Order Success State */}
+          {/* Unauthenticated Alert Banner */}
+          {!isAuthenticated && !orderSuccessId && items.length > 0 && (
+            <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-3.5 flex items-center justify-between gap-3 text-xs text-amber-200">
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Sign in required to link order to your account</span>
+              </div>
+              <button
+                onClick={() => router.push('/auth/login?redirect=/menu')}
+                className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-3xs font-black text-stone-950 hover:bg-amber-400 transition-colors flex items-center gap-1"
+              >
+                <LogIn className="w-3 h-3" />
+                <span>Sign In</span>
+              </button>
+            </div>
+          )}
+
+          {/* Body List */}
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+            {errorMsg && (
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 flex items-start justify-between gap-2 shadow-lg">
+                <p>{errorMsg}</p>
+                <button onClick={() => setErrorMsg(null)} className="font-bold text-red-400">✕</button>
+              </div>
+            )}
+
             {orderSuccessId ? (
-              <div className="rounded-3xl border border-emerald-500/30 bg-emerald-950/30 p-8 text-center space-y-5 my-6 backdrop-blur-xl">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-stone-950 shadow-lg shadow-emerald-500/30">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center space-y-5 my-auto shadow-2xl">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+                  <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black text-white">Order Sent to Kitchen!</h3>
-                  <p className="text-xs text-emerald-300 font-mono">
-                    Order Ticket #{orderSuccessId.substring(0, 8)}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-white">Order Confirmed!</h3>
+                  <p className="text-xs text-stone-300">
+                    Your order ticket <span className="font-mono text-emerald-400 font-bold">#{orderSuccessId.substring(0, 8)}</span> has been dispatched directly to the kitchen line.
                   </p>
                 </div>
-                <div className="pt-2 flex flex-col gap-3">
+                <div className="pt-2 space-y-2">
                   <button
                     onClick={() => {
-                      setOrderSuccessId(null);
                       onClose();
                       router.push(`/orders/${orderSuccessId}`);
                     }}
-                    className="w-full rounded-2xl bg-emerald-500 py-3.5 text-xs font-extrabold text-stone-950 hover:bg-emerald-400 transition-colors shadow-lg flex items-center justify-center gap-2"
+                    className="w-full rounded-2xl bg-emerald-500 py-3 text-xs font-bold text-stone-950 hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-lg"
                   >
-                    <span>Track Kitchen Preparation</span>
+                    <span>Track Live Order Status</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
@@ -158,114 +185,75 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       setOrderSuccessId(null);
                       onClose();
                     }}
-                    className="w-full rounded-2xl border border-stone-700 bg-stone-800 py-3 text-xs font-bold text-stone-300 hover:bg-stone-700 hover:text-white transition-colors"
+                    className="w-full rounded-2xl border border-stone-800 bg-stone-950 py-2.5 text-xs text-stone-400 hover:text-white transition-colors"
                   >
-                    Close Cart
+                    Back to Menu
                   </button>
                 </div>
               </div>
             ) : items.length === 0 ? (
-              /* Empty State */
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-stone-800/80 border border-stone-700 text-amber-400">
-                  <Utensils className="w-9 h-9" />
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-16">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-800 text-stone-500">
+                  <Utensils className="w-8 h-8" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-white">Your cart is empty</h3>
-                  <p className="text-xs text-stone-400 max-w-xs">
-                    Explore our menu to add appetizers, main courses, desserts, or mocktails.
-                  </p>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Your cart is empty</h3>
+                  <p className="text-xs text-stone-500 mt-1">Explore our culinary selections to add items.</p>
                 </div>
-                <button
-                  onClick={() => {
-                    onClose();
-                    router.push('/menu');
-                  }}
-                  className="mt-2 rounded-2xl bg-amber-500 px-6 py-3 text-xs font-extrabold text-stone-950 hover:bg-amber-400 transition-colors shadow-lg"
-                >
-                  Browse Menu Now
-                </button>
               </div>
             ) : (
-              /* Items List */
               <>
-                {errorMsg && (
-                  <div className="rounded-2xl border border-red-500/30 bg-red-950/40 p-4 text-xs text-red-300 flex items-center justify-between">
-                    <span>{errorMsg}</span>
-                    <button onClick={() => setErrorMsg(null)} className="text-red-400 font-bold ml-2">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
-                {!user && (
-                  <div className="rounded-2xl border border-amber-500/30 bg-amber-950/30 p-4 text-xs text-amber-300 flex items-center gap-2">
-                    <Lock className="w-4 h-4 shrink-0 text-amber-400" />
-                    <span>
-                      Ordering as guest. <button onClick={() => { onClose(); router.push('/auth/login'); }} className="underline font-bold text-amber-200">Sign in</button> to track status live.
-                    </span>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  {items.map(({ menuItem, quantity }) => (
+                <div className="space-y-3">
+                  {items.map((item) => (
                     <div
-                      key={menuItem.id}
-                      className="flex items-center justify-between rounded-2xl border border-stone-800 bg-stone-850/60 p-3.5 shadow-md gap-3"
+                      key={item.menuItem.id}
+                      className="flex items-center gap-4 rounded-2xl border border-stone-800 bg-stone-950/60 p-3.5 shadow-md"
                     >
                       <img
-                        src={getCartItemImage(menuItem)}
-                        alt={menuItem.name}
-                        className="w-16 h-16 rounded-xl object-cover shrink-0 border border-stone-700/60"
+                        src={getCartItemImage(item.menuItem)}
+                        alt={item.menuItem.name}
+                        className="h-16 w-16 rounded-xl object-cover border border-stone-800"
                       />
-
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <h4 className="text-xs font-extrabold text-white truncate">{menuItem.name}</h4>
-                        <p className="text-xs font-mono font-bold text-amber-400">
-                          ₹{menuItem.price.toFixed(2)}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center rounded-xl border border-stone-700 bg-stone-900 p-1">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-stone-100 truncate">{item.menuItem.name}</h4>
+                        <p className="text-xs font-mono text-amber-400 mt-0.5">₹{item.menuItem.price.toFixed(2)}</p>
+                        <div className="flex items-center gap-2 mt-2">
                           <button
-                            onClick={() => updateQuantity(menuItem.id, -1)}
-                            className="p-1 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors"
+                            onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
+                            className="rounded-lg bg-stone-800 p-1 text-stone-300 hover:bg-stone-700 transition-colors"
                           >
-                            <Minus className="w-3.5 h-3.5" />
+                            <Minus className="w-3 h-3" />
                           </button>
-                          <span className="px-2 text-xs font-black text-white font-mono">{quantity}</span>
+                          <span className="text-xs font-bold text-stone-200 px-1">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(menuItem.id, 1)}
-                            className="p-1 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors"
+                            onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                            className="rounded-lg bg-stone-800 p-1 text-stone-300 hover:bg-stone-700 transition-colors"
                           >
-                            <Plus className="w-3.5 h-3.5" />
+                            <Plus className="w-3 h-3" />
                           </button>
                         </div>
-
-                        <button
-                          onClick={() => removeItem(menuItem.id)}
-                          className="p-1.5 text-stone-400 hover:text-red-400 transition-colors"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
+                      <button
+                        onClick={() => removeItem(item.menuItem.id)}
+                        className="text-stone-500 hover:text-red-400 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
 
-                {/* Table Number Input */}
-                <div className="pt-3 border-t border-stone-800 space-y-1.5">
-                  <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                    Dining Table ID (Optional)
+                {/* Table Number Selection */}
+                <div className="rounded-2xl border border-stone-800 bg-stone-950/40 p-4 space-y-2 mt-4">
+                  <label className="block text-3xs uppercase font-bold text-stone-400 tracking-wider">
+                    Dine-in Table ID / Number (Optional)
                   </label>
                   <input
                     type="text"
                     value={inputTableId}
                     onChange={(e) => setInputTableId(e.target.value)}
-                    placeholder="Table ID or leave empty for takeaway"
-                    className="w-full rounded-xl border border-stone-700 bg-stone-800/80 px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-amber-500 focus:outline-none"
+                    placeholder="e.g. Table #4"
+                    className="w-full rounded-xl bg-stone-900 border border-stone-800 px-3.5 py-2 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </>
@@ -290,20 +278,30 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                disabled={isSubmitting}
-                className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 py-3.5 text-xs font-black text-stone-950 shadow-xl shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-stone-950 border-t-transparent rounded-full animate-spin"></span>
-                    <span>Placing Order...</span>
-                  </>
-                ) : (
-                  <span>Place Order Now • ₹{grandTotal.toFixed(2)}</span>
-                )}
-              </button>
+              {!isAuthenticated ? (
+                <button
+                  onClick={() => router.push('/auth/login?redirect=/menu')}
+                  className="w-full rounded-2xl bg-amber-500 py-3.5 text-xs font-black text-stone-950 shadow-xl hover:bg-amber-400 transition-all flex items-center justify-center gap-2"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>Sign In to Place Order • ₹{grandTotal.toFixed(2)}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCheckout}
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 py-3.5 text-xs font-black text-stone-950 shadow-xl shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-stone-950 border-t-transparent rounded-full animate-spin"></span>
+                      <span>Placing Order...</span>
+                    </>
+                  ) : (
+                    <span>Place Order Now • ₹{grandTotal.toFixed(2)}</span>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -311,4 +309,3 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     </div>
   );
 }
-

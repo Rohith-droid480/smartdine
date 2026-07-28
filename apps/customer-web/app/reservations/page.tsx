@@ -75,6 +75,13 @@ export default function ReservationsPage() {
   useEffect(() => {
     fetchTables();
     fetchReservations();
+
+    const interval = setInterval(() => {
+      fetchTables();
+      fetchReservations();
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, [fetchTables, fetchReservations]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
