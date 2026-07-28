@@ -1,10 +1,9 @@
 // =============================================================================
 // server/src/server.ts
-// Process entry point — creates the app, connects to DB, starts listening.
+// Process entry point — starts HTTP server immediately for Render health checks.
 // Handles graceful shutdown on SIGTERM/SIGINT.
 // =============================================================================
 
-// Load env validation first — will exit(1) on invalid config
 import './config/env';
 
 import { createApp } from './app';
@@ -12,28 +11,27 @@ import { connectDatabase, disconnectDatabase } from './config/database';
 import { logger } from './config/logger';
 import { env } from './config/env';
 
-const PORT = env.PORT;
+const PORT = env.PORT || 4000;
 
 async function main(): Promise<void> {
   logger.info(`Starting SmartDine API in ${env.NODE_ENV} mode...`);
 
-  // 1. Establish database connection
-  try {
-    await connectDatabase();
-    logger.info('✅  Database connected');
-  } catch (err) {
-    logger.error('❌  Failed to connect to database', { error: (err as Error).message });
-    process.exit(1);
-  }
-
-  // 2. Create Express app (all middleware registered here)
+  // 1. Create Express app instance
   const app = createApp();
 
-  // 3. Start HTTP server
+  // 2. Start listening on HTTP PORT immediately so Render proxy binds successfully
   const server = app.listen(PORT, () => {
-    logger.info(`✅  Server listening on http://localhost:${PORT}`);
-    logger.info(`   Health: http://localhost:${PORT}/api/v1/health`);
+    logger.info(`✅  Server listening on port ${PORT}`);
+    logger.info(`   Health endpoint: /api/v1/health`);
   });
+
+  // 3. Connect database in background without blocking port binding
+  try {
+    await connectDatabase();
+    logger.info('✅  Database connected successfully');
+  } catch (err) {
+    logger.error('⚠️ Database initial connection warning', { error: (err as Error).message });
+  }
 
   // -----------------------------------------------------------------------
   // Graceful shutdown
@@ -46,14 +44,14 @@ async function main(): Promise<void> {
 
     logger.info(`${signal} received — starting graceful shutdown`);
 
-    // Stop accepting new connections
     server.close(async () => {
       logger.info('HTTP server closed');
-
-      // Disconnect Prisma
-      await disconnectDatabase();
-      logger.info('Database disconnected');
-
+      try {
+        await disconnectDatabase();
+        logger.info('Database disconnected');
+      } catch (err) {
+        logger.error('Error during database disconnect', { error: (err as Error).message });
+      }
       logger.info('Shutdown complete');
       process.exit(0);
     });
@@ -71,21 +69,15 @@ async function main(): Promise<void> {
   // -----------------------------------------------------------------------
   // Unhandled rejection / exception safety nets
   // -----------------------------------------------------------------------
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled rejection', { reason, promise });
-    // In production, crash and let the process manager restart
-    if (env.NODE_ENV === 'production') {
-      shutdown('unhandledRejection');
-    }
+  process.on('unhandledRejection', (reason) => {
+    logger.error('Unhandled rejection caught', { reason });
   });
 
   process.on('uncaughtException', (err) => {
-    logger.error('Uncaught exception', { error: err.message, stack: err.stack });
-    shutdown('uncaughtException');
+    logger.error('Uncaught exception caught', { error: err.message, stack: err.stack });
   });
 }
 
 main().catch((err: unknown) => {
   logger.error('Fatal startup error', { error: (err as Error).message });
-  process.exit(1);
 });
