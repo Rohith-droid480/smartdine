@@ -1,110 +1,114 @@
-# 🍽️ SmartDine — Michelin-Grade Digital Restaurant Operating System
+# 🍽️ SmartDine — Next-Gen Autonomous Restaurant Operating System
+
+**Hackathon**: Vibeathon 6.0 (Vibecoding Hackathon — Final Project Submission)  
+**Organization / Security Sponsor**: NXTGENSEC (Next Generation Security)  
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black.svg)](https://nextjs.org/)
 [![Express](https://img.shields.io/badge/Express-4.19-lightgrey.svg)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.12-indigo.svg)](https://www.prisma.io/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-orange.svg)](https://ai.google.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-SmartDine is an enterprise-grade digital restaurant operating platform designed to deliver a calm, friction-free dining and kitchen management experience. Built as a unified monorepo, SmartDine bridges customer digital ordering, real-time Kitchen Display System (KDS) dispatching, interactive table reservations, printable GST tax invoicing, and fail-safe grounded AI insights.
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-orange.svg)](https://ai.google.dev/)
+[![Deployment: Vercel](https://img.shields.io/badge/Deployment-Vercel-black.svg)](https://smartdine-customer-gamma.vercel.app)
+[![Deployment: Render](https://img.shields.io/badge/Deployment-Render-blue.svg)](https://smartdine-server.onrender.com/api/v1)
 
 ---
 
-## 🌟 Key Architecture & Highlights
+## 👥 Team Information & Roles
 
-- **Monorepo Architecture**: Integrated applications (`apps/customer-web`, `apps/staff-dashboard`, `server`, `shared`) linked by unified TypeScript data models.
-- **Michelin-Grade Customer Web**: Dark obsidian visual aesthetic (`bg-stone-950`), sticky glass filter controls, high-resolution culinary photography, slide-over cart drawer, and live 5-stage kitchen ticket tracker.
-- **High-Throughput Kitchen Display System (KDS)**: Chronological FIFO queue with 1-click status transitions (`Placed` -> `Preparing` -> `Ready` -> `Served` -> `Billed`).
-- **Grounded AI Engine (Google Gemini 2.5 Flash)**:
-  - **Chef Recommendations**: Grounded dish pairings (`⚡ 97% MATCH`) based on live kitchen inventory and meal periods.
-  - **Operations Copilot**: Natural language query engine with database grounding and non-operational query refusal logic.
-  - **Predictive Demand Forecasting**: Historical order velocity and peak-hour rush projections.
-- **Fail-Safe Heuristic Fallbacks**: Operates seamlessly even if remote AI endpoints stall or reach API limits.
-- **Production Hardening**: JWT access/refresh lifecycle, RBAC isolation, status regression prevention, and 0 TypeScript compilation errors.
+- **Team Name**: `SmartDine Innovators`
+- **Team Lead Name**: **Rohith P** (*Full-Stack Architect & Real-Time Systems Integration*)
+- **Team Members & Responsibilities**:
+  - 👨‍💻 **Rohith P** — Team Lead & Full-Stack Architect (Monorepo Setup, Real-Time Polling, Status Lifecycle, Production Hardening)
+  - ⚙️ **Dilip Shekar K** — Backend & Database Engineer (Express Controllers, Prisma Schema, Grounded AI Context Engine)
+  - 🎨 **Meghana L S** — Frontend & UI/UX Developer (Michelin Dark Obsidian Design System, Cart Drawer, Voice STT Interface)
+  - 🧪 **Lavanya C** — QA & Operations Testing (Cross-System Consistency Audit, Inventory Auto-Depletion & Table Sync Validation)
+
+---
+
+## 🌐 Live Public Deployment Links
+
+- 📱 **Customer Web App (Vercel)**: [https://smartdine-customer-gamma.vercel.app](https://smartdine-customer-gamma.vercel.app)
+- 👨‍🍳 **Staff Admin Dashboard (Vercel)**: [https://smartdine-staff.vercel.app](https://smartdine-staff.vercel.app)
+- ⚙️ **Backend Core API (Render)**: [https://smartdine-server.onrender.com/api/v1](https://smartdine-server.onrender.com/api/v1)
+- 📦 **Public GitHub Repository**: [https://github.com/Rohith-droid480/smartdine.git](https://github.com/Rohith-droid480/smartdine.git)
+
+---
+
+## 🔑 Pre-Seeded Demo Credentials
+
+To experience the system during evaluation, use these pre-seeded accounts:
+
+| Role | Email | Password | Access Level |
+| :--- | :--- | :--- | :--- |
+| **Customer** | `customer@smartdine.com` | `Password123` | Digital Menu, Cart Checkout, Voice AI Concierge, Order Tracking, Table Booking |
+| **Kitchen Staff** | `staff@smartdine.com` | `Password123` | KDS Dispatch Queue, Order Status Progression (`Placed` $\rightarrow$ `Billed`) |
+| **Admin / Manager** | `admin@smartdine.com` | `Password123` | Executive KPI Metrics, Floorplan Seating, Inventory Audit, AI Operations Copilot |
+
+---
+
+## 🌟 Core System Features & Status
+
+| Feature Module | Description & Capabilities | Status |
+| :--- | :--- | :---: |
+| **1-Second Real-Time KDS Sync** | Customer orders populate on Staff Admin KDS within 1 second with Web Audio crescendo bell chime `#101`. | **PRODUCTION READY** |
+| **Strict Order Status Lifecycle** | Enforces sequential progression: `Placed` $\rightarrow$ `Preparing` $\rightarrow$ `Ready` $\rightarrow$ `Served` $\rightarrow$ `Billed`. | **PRODUCTION READY** |
+| **Real Inventory Auto-Depletion** | Placing orders auto-deducts ingredient stock in PostgreSQL; zero stock auto-flips dish to **SOLD OUT**. | **PRODUCTION READY** |
+| **Table Seating Sync** | Dine-in orders set table status `FREE` $\rightarrow$ `OCCUPIED`; billing completion returns table to `FREE`. | **PRODUCTION READY** |
+| **Web Speech API Voice STT** | 🎙️ Zero-latency voice-to-text audio input with live transcript preview for hands-free ordering. | **PRODUCTION READY** |
+| **Grounded Gemini AI Engine** | Injects live database revenue, active kitchen queue size, and ingredient stock into AI prompts. | **PRODUCTION READY** |
+| **Double-Submit & Overlap Guard** | Disables checkout on submit; blocks overlapping table reservations with `HTTP 409 Conflict`. | **PRODUCTION READY** |
+| **Evaluation Rate Limiter** | Active rate limiters (api: 600/min, ai: 60/min, auth: 60/min) tuned for multi-tab evaluation without 429 errors. | **PRODUCTION READY** |
+| **POS Thermal Printer Integration** | Direct USB / Network ESC/POS hardware receipt printer driver. | **`[BETA]`** |
+| **PWA Native Lockscreen Push** | Service Worker push notifications for customer order ready alerts when app is closed. | **`[BETA]`** |
+| **Multi-Location Chain Analytics** | Cross-branch franchise telemetry and central supply-chain reordering dashboard. | **`[BETA]`** |
 
 ---
 
 ## 📁 Repository Structure
 
 ```
-d:\SMARTDINE\
+smartdine/
 ├── apps/
-│   ├── customer-web/      # Customer Self-Service Application (Next.js 14, Port 3000)
-│   └── staff-dashboard/   # Kitchen KDS & Manager Analytics (Next.js 14, Port 3001)
-├── server/                # Express / TypeScript Backend API (Port 4000)
-├── shared/                # Common TypeScript Types & Utilities
-├── prisma/                # PostgreSQL Database Schema & Migration Scripts
-└── README.md              # Master System Documentation
+│   ├── customer-web/            # Customer Self-Service App (Next.js 14, Vercel)
+│   └── staff-dashboard/         # Kitchen KDS & Executive Dashboard (Next.js 14, Vercel)
+├── server/                      # Express Node.js Backend API (Render)
+│   ├── prisma/                  # PostgreSQL Schema & Seed Scripts
+│   └── src/                     # Controllers, Services, Middleware, Grounded AI Gateway
+├── shared/                      # Monorepo Shared Contracts, Enums, & Utilities
+└── README.md                    # Official Vibeathon 6.0 Submission README
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Local Quick Start & Installation
 
 ### Prerequisites
 - Node.js `v18.x` or `v20.x`
 - npm `v9.x` or `v10.x`
-- PostgreSQL (or local SQLite/Prisma development database)
+- PostgreSQL (or Supabase Connection String)
 
-### 1. Installation
+### 1. Clone & Install
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/smartdine.git
+git clone https://github.com/Rohith-droid480/smartdine.git
 cd smartdine
-
-# Install all monorepo dependencies
 npm install
 ```
 
 ### 2. Database Migration & Seed
 ```bash
-# Generate Prisma Client & apply schema
+cd server
 npx prisma generate
 npx prisma db push
-
-# Seed sample menu items, tables, and staff accounts
-npm run seed
+npm run db:seed
 ```
 
-### 3. Launch Development Servers
+### 3. Run Locally
 ```bash
-# Start backend, customer web, and staff dashboard concurrently
+# From root directory (starts all monorepo workspaces concurrently)
 npm run dev
-```
-
-#### Access Application Ports:
-- 📱 **Customer Web**: `http://localhost:3000`
-- 👨‍🍳 **Staff & Kitchen Dashboard**: `http://localhost:3001`
-- ⚙️ **Express API Backend**: `http://localhost:4000/api/v1`
-
----
-
-## 🔒 Environment Configuration
-
-Create a `.env` file in the `server/` directory:
-
-```env
-NODE_ENV=development
-PORT=4000
-DATABASE_URL="postgresql://user:password@localhost:5432/smartdine"
-JWT_SECRET="super-secret-key-at-least-32-characters-long"
-JWT_REFRESH_SECRET="super-secret-refresh-key-at-least-32-chars"
-GEMINI_API_KEY="your-google-gemini-api-key"
-```
-
----
-
-## 🧪 Testing & Verification
-
-```bash
-# Verify zero compilation errors across all modules
-npx tsc --noEmit (apps/customer-web)
-npx tsc --noEmit (apps/staff-dashboard)
-npx tsc --noEmit (server)
 ```
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is submitted for **Vibeathon 6.0** under the MIT License.
