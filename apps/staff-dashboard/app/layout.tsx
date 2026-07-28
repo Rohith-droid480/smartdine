@@ -11,11 +11,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SmartDine Staff Dashboard',
-    template: '%s | SmartDine Dashboard',
+    default: 'SmartDine — Executive Staff & KDS Dispatch Dashboard',
+    template: '%s | SmartDine Operations',
   },
-  description: 'AI-Powered Smart Restaurant Management System Staff Dashboard',
-  robots: { index: false, follow: false }, // Staff dashboard must not be indexed
+  description: 'Real-time kitchen dispatch, floorplan table seating occupancy, inventory audit, and AI operations copilot.',
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

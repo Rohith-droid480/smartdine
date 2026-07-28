@@ -14,17 +14,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SmartDine — Smart Restaurant Experience',
+    default: 'SmartDine — Gourmet Dining & AI Concierge',
     template: '%s | SmartDine',
   },
   description:
-    'Browse menus, make reservations, track orders live, and enjoy seamless restaurant dining — all in one place.',
-  keywords: ['restaurant', 'food', 'reservations', 'online ordering', 'menu'],
-  authors: [{ name: 'SmartDine' }],
+    'Browse Michelin-grade menus, reserve dining tables, track kitchen orders in real time, and interact with our AI Dining Concierge.',
+  keywords: ['restaurant', 'gourmet dining', 'table reservations', 'online ordering', 'voice ai assistant'],
+  authors: [{ name: 'SmartDine Innovators' }],
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    siteName: 'SmartDine',
+    siteName: 'SmartDine Gourmet System',
   },
 };
 
