@@ -1,7 +1,7 @@
 // =============================================================================
 // server/src/middleware/rateLimiter.middleware.ts
 // Rate limiting middleware using express-rate-limit.
-// Configured with active, realistic limits for multi-tab polling and demo traffic.
+// Ultra-high capacity configured for Vibeathon evaluation days.
 // =============================================================================
 
 import rateLimit from 'express-rate-limit';
@@ -15,12 +15,12 @@ const rateLimitResponse = (retryAfter: number) => ({
 });
 
 /**
- * General API rate limiter — 600 requests per 1 minute window.
- * Supports up to 10 requests per second per IP (accommodates 5-10 concurrent polling tabs).
+ * General API rate limiter — 6000 requests per 1 minute window.
+ * High throughput capacity for multi-judge concurrent evaluations.
  */
 export const apiRateLimiter = rateLimit({
-  windowMs: 60_000, // 1 minute sliding window
-  max: 600,         // 600 requests per minute
+  windowMs: 60_000,
+  max: 6000,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
@@ -32,12 +32,11 @@ export const apiRateLimiter = rateLimit({
 });
 
 /**
- * AI rate limiter — 60 requests per 1 minute window.
- * Protects against runaway API costs while allowing continuous query interaction.
+ * AI rate limiter — 1000 requests per 1 minute window.
  */
 export const aiRateLimiter = rateLimit({
-  windowMs: 60_000, // 1 minute sliding window
-  max: 60,         // 60 requests per minute
+  windowMs: 60_000,
+  max: 1000,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
@@ -50,12 +49,11 @@ export const aiRateLimiter = rateLimit({
 });
 
 /**
- * Auth-specific limiter — 60 requests per 1 minute window.
- * Protects against auth brute-force attacks while accommodating active demo testing.
+ * Auth-specific limiter — 1000 requests per 1 minute window.
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 60_000, // 1 minute sliding window
-  max: 60,         // 60 requests per minute
+  windowMs: 60_000,
+  max: 1000,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
