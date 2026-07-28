@@ -152,7 +152,7 @@ async function main(): Promise<void> {
       price: 410.00,
       category: 'Starters',
       available: true,
-      imageUrl: 'https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81',
+      imageUrl: 'https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81?auto=format&fit=crop&w=1200&q=80',
     },
     {
       name: 'Valrhona Chocolate Fondant',

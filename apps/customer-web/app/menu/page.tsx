@@ -26,6 +26,9 @@ function getDishImage(item: MenuItem): string {
   const name = item.name.toLowerCase();
   const cat = (item.category || '').toLowerCase();
 
+  if (name.includes('asparagus') || name.includes('burrata')) {
+    return 'https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81?auto=format&fit=crop&w=1200&q=80';
+  }
   if (name.includes('burger') || name.includes('wagyu')) {
     return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80';
   }
