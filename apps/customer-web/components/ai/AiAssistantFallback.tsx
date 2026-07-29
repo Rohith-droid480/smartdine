@@ -37,7 +37,6 @@ export function AiAssistantWidget() {
         const transcript = event.results[0]?.[0]?.transcript;
         if (transcript) {
           setQuery(transcript);
-          handleSend(transcript);
         }
       };
 
@@ -48,8 +47,9 @@ export function AiAssistantWidget() {
   };
 
   const handleSend = async (textToSend?: string) => {
+    if (isLoading) return;
     const q = (textToSend || query).trim();
-    if (!q || isLoading) return;
+    if (!q) return;
 
     setMessages((prev) => [...prev, { sender: 'user', text: q }]);
     if (!textToSend) setQuery('');

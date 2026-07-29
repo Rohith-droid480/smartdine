@@ -99,15 +99,18 @@ export default function AssistantPage() {
 
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
         if (transcript) {
           setInputMessage(transcript);
-          handleSendMessage(transcript);
         }
       };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      recognition.onerror = () => setIsListening(false);
 
       recognition.start();
     } catch {
